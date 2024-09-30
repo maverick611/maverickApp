@@ -1,6 +1,6 @@
 // import React from 'react';
 import React from 'react';
-
+import {useNavigation} from '@react-navigation/native';
 import {
   Button,
   Image,
@@ -9,9 +9,12 @@ import {
   Text,
   TextInput,
   View,
+  TouchableOpacity,
 } from 'react-native';
 const localImage = require('./Logo.png');
-const Login = () => {
+const Login = props => {
+  const navigation = useNavigation();
+  const {setIsAuth} = props;
   return (
     <View style={styles.mainContainer}>
       <View>
@@ -21,13 +24,15 @@ const Login = () => {
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
           <Text>Login</Text>
         </View>
-        <TextInput style={styles.input} value="username" />
-        <TextInput style={styles.input} value="password" />
-        <Button title="Login" />
+        <TextInput style={styles.input} placeholder="username" />
+        <TextInput style={styles.input} placeholder="password" />
+        <Button title="Login" onPress={() => setIsAuth(true)} />
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
           <Text>
             Not yet registered?{' '}
-            <Text style={{textDecorationLine: 'underline'}}>SignUp Now</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+              <Text style={{textDecorationLine: 'underline'}}>SignUp Now</Text>
+            </TouchableOpacity>
           </Text>
         </View>
       </View>
