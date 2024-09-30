@@ -110,17 +110,26 @@ const Reports = () => {
           alignItems: 'center',
         }}>
         <View>
-          <Text>Select to view progress</Text>
-          <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) =>
-              setSelectedValue(itemValue)
-            }>
-            {disease.map((value, index) => (
-              <Picker.Item label={value} value={value} key={index} />
-            ))}
-          </Picker>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              marginBottom: 10,
+            }}>
+            <Text style={{fontSize: 20}}>Select to view progress</Text>
+          </View>
+          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+            <Picker
+              selectedValue={selectedValue}
+              style={styles.picker}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedValue(itemValue)
+              }>
+              {disease.map((value, index) => (
+                <Picker.Item label={value} value={value} key={index} />
+              ))}
+            </Picker>
+          </View>
           <View>
             <BarChart
               data={data}
@@ -155,8 +164,8 @@ const Reports = () => {
 
 const styles = StyleSheet.create({
   picker: {
-    width: 300,
-    height: 50,
+    width: 200,
+    height: 30,
     backgroundColor: '#FFF',
     borderColor: 'black',
     borderWidth: 1,

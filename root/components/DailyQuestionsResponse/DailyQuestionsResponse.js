@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-
+import EntypoIcon from 'react-native-vector-icons/Entypo';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
   if (question.type === 'dropdown') {
     return (
@@ -11,7 +12,7 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
           selectedValue={selectedValue}
           style={styles.picker}
           onValueChange={itemValue => setSelectedValue(itemValue)}>
-          {question.options.map((option, i) => (
+          {question.answer.map((option, i) => (
             <Picker.Item key={i} label={option} value={option} />
           ))}
         </Picker>
@@ -21,11 +22,20 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
     return (
       <View key={index} style={styles.questionContainer}>
         <Text style={styles.questionText}>{question.question}</Text>
-        {question.options.map((option, i) => (
-          <Text key={i} style={styles.optionText}>
-            {option}
-          </Text>
-        ))}
+        <View style={styles.optionsHolder}>
+          {question.options.map((option, i) => (
+            <View style={{display: 'flex', flexDirection: 'row', margin: 5}}>
+              {question.answer != option ? (
+                <EntypoIcon name="circle" size={15} />
+              ) : (
+                <FontAwesomeIcon name="dot-circle-o" size={19} />
+              )}
+              <Text key={i} style={styles.optionText}>
+                {option}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -51,7 +61,7 @@ const DailyQuestionsResponse = () => {
       question: 'How long do you sit (hrs)',
       options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
       type: 'dropdown',
-      answer: '4-5',
+      answer: ['4-5'],
     },
   ];
 
@@ -72,6 +82,10 @@ const DailyQuestionsResponse = () => {
 };
 
 const styles = StyleSheet.create({
+  optionsHolder: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
   container: {
     padding: 20,
   },

@@ -4,10 +4,18 @@ import {Image, Text, View, StyleSheet, Button} from 'react-native';
 const Home = () => {
   const aboutUsImage = require('../../assets/homeAboutUsImage.jpg');
   return (
-    <View style={{flex: 1}}>
-      <Text>WELCOME TO MAVERICK HEALTH</Text>
+    <View style={{flex: 1, backgroundColor: 'rgb(226	244	254	)'}}>
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          margin: 15,
+        }}>
+        <Text>WELCOME TO MAVERICK HEALTH</Text>
+      </View>
       <View>
-        <View>
+        <View style={{marginTop: 20, padding: 10}}>
           <Text>About Us</Text>
           <Image
             source={aboutUsImage}
@@ -15,7 +23,7 @@ const Home = () => {
             resizeMode="contain"
           />
         </View>
-        <View>
+        <View style={{marginTop: 20, padding: 10}}>
           <Text>Who are we?</Text>
           <Image
             source={aboutUsImage}
@@ -36,8 +44,8 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   image: {
-    width: 450,
-    height: 150,
+    width: '95%',
+    height: 230,
     marginBottom: 20,
   },
 });

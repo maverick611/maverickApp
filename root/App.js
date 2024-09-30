@@ -5,6 +5,7 @@ import Verification from './components/Verification/Verification.js';
 import Home from './components/Home/Home.js';
 import Notify from './components/Notify/Notify.js';
 import Progress from './components/Progress/Progress.js';
+import DailyQuestionsResponse from './components/DailyQuestionsResponse/DailyQuestionsResponse.js';
 import Reports from './components/Reports/Reports.js';
 import Daily from './components/Daily/Daily.js';
 import {NavigationContainer} from '@react-navigation/native';
@@ -51,6 +52,11 @@ const App = () => {
         <Stack.Screen name="Verification">
           {props => <Verification {...props} setIsAuth={setIsAuth} />}
         </Stack.Screen>
+        <Stack.Screen name="Daily" component={Daily} />
+        <Stack.Screen
+          name="DailyQuestionsResponse"
+          component={DailyQuestionsResponse}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {Text, View, StyleSheet} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/Feather';
+import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 const Progress = () => {
   const [selectedValue, setSelectedValue] = useState('osteoporosis');
   const disease = [
@@ -36,8 +38,17 @@ const Progress = () => {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
+        height: '100%',
+        backgroundColor: 'rgb(226	244	254	)',
       }}>
-      <Text>Select the risk to view resources</Text>
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+        }}>
+        <Text style={{fontSize: 20}}>Select the risk to view resources</Text>
+      </View>
       <Picker
         selectedValue={selectedValue}
         style={styles.picker}
@@ -46,24 +57,82 @@ const Progress = () => {
           <Picker.Item label={value} value={value} key={index} />
         ))}
       </Picker>
-      <View>
+      <View style={styles.mainContainer}>
         <View style={styles.yetToWatch}>
-          <Text>Yet to watch</Text>
-          {yetToWatch.map((value, index) => (
-            <View key={index} style={styles.eachYetToWatch}>
-              <Text>{yetToWatch[index][0]}</Text>
-              <Text>{yetToWatch[index][1]}</Text>
-            </View>
-          ))}
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}>
+            <Text>Yet to watch</Text>
+          </View>
+          <View
+            style={{
+              borderRadius: 1,
+              borderRightWidth: 0,
+              borderLeftWidth: 0,
+              borderColor: 'black',
+            }}>
+            {yetToWatch.map((value, index) => (
+              <View key={index} style={styles.eachYetToWatch}>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                  }}>
+                  <View style={{marginRight: 10}}>
+                    <Icon name="target" size={20} color="red" />
+                  </View>
+                  <View>
+                    <Text>{yetToWatch[index][0]}</Text>
+                    <Text>{yetToWatch[index][1]}</Text>
+                  </View>
+                </View>
+                <Icon name="external-link" size={20} color="black" />
+              </View>
+            ))}
+          </View>
         </View>
         <View style={styles.yetToWatch}>
-          <Text>Completed</Text>
-          {completed.map((value, index) => (
-            <View style={styles.eachYetToWatch} key={index}>
-              <Text>{completed[index][0]}</Text>
-              <Text>{completed[index][1]}</Text>
-            </View>
-          ))}
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}>
+            <Text>Completed</Text>
+          </View>
+          <View
+            style={{
+              borderRadius: 1,
+              borderRightWidth: 0,
+              borderLeftWidth: 0,
+              borderColor: 'black',
+            }}>
+            {completed.map((value, index) => (
+              <View key={index} style={styles.eachYetToWatch}>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                  }}>
+                  <View style={{marginRight: 10}}>
+                    <IoniconsIcon
+                      name="checkmark-circle-outline"
+                      size={20}
+                      color="red"
+                    />
+                  </View>
+                  <View>
+                    <Text>{completed[index][0]}</Text>
+                    <Text>{completed[index][1]}</Text>
+                  </View>
+                </View>
+                <Icon name="external-link" size={20} color="black" />
+              </View>
+            ))}
+          </View>
         </View>
       </View>
     </View>
@@ -71,19 +140,25 @@ const Progress = () => {
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: 'white',
+    margin: 25,
+    width: '80%',
+    borderRadius: 10,
+  },
   picker: {
-    width: 300,
-    height: 50,
+    width: 200,
+    height: 20,
     backgroundColor: '#FFF',
     borderColor: 'black',
     borderWidth: 1,
   },
   yetToWatch: {
-    borderWidth: 2,
-    borderColor: 'red',
     padding: 30,
   },
   eachYetToWatch: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     padding: 3,
     margin: 8,
   },
