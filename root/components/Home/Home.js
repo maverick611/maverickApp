@@ -1,10 +1,11 @@
 import React from 'react';
 import {Image, Text, View, StyleSheet, Button} from 'react-native';
-
+import Header from '../Header/Header';
 const Home = () => {
   const aboutUsImage = require('../../assets/homeAboutUsImage.jpg');
   return (
     <View style={{flex: 1, backgroundColor: 'rgb(226	244	254	)'}}>
+      <Header />
       <View
         style={{
           display: 'flex',

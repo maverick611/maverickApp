@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {BarChart} from 'react-native-chart-kit';
+import Header from '../Header/Header';
 const Reports = () => {
   const responseDates = [
     ['Report on 09/27/2024', 'at 2:30PM'],
@@ -55,6 +56,7 @@ const Reports = () => {
   };
   return (
     <View>
+      <Header />
       <View
         style={{
           borderWidth: 2,

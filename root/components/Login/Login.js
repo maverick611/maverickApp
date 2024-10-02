@@ -42,7 +42,7 @@ const Login = props => {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    borderWidth: 2,
+    borderWidth: 1,
     // borderColor: 'red',
     // justifyContent: 'center',
     alignItems: 'center',

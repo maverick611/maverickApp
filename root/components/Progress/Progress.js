@@ -3,6 +3,8 @@ import {Text, View, StyleSheet} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/Feather';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
+import Header from '../Header/Header';
+
 const Progress = () => {
   const [selectedValue, setSelectedValue] = useState('osteoporosis');
   const disease = [
@@ -32,110 +34,113 @@ const Progress = () => {
   ];
 
   return (
-    <View
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-        backgroundColor: 'rgb(226	244	254	)',
-      }}>
+    <>
+      <Header />
       <View
         style={{
           display: 'flex',
-          flexDirection: 'row',
+          flexDirection: 'column',
           justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+          backgroundColor: 'rgb(226	244	254	)',
         }}>
-        <Text style={{fontSize: 20}}>Select the risk to view resources</Text>
-      </View>
-      <Picker
-        selectedValue={selectedValue}
-        style={styles.picker}
-        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}>
-        {disease.map((value, index) => (
-          <Picker.Item label={value} value={value} key={index} />
-        ))}
-      </Picker>
-      <View style={styles.mainContainer}>
-        <View style={styles.yetToWatch}>
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}>
-            <Text>Yet to watch</Text>
-          </View>
-          <View
-            style={{
-              borderRadius: 1,
-              borderRightWidth: 0,
-              borderLeftWidth: 0,
-              borderColor: 'black',
-            }}>
-            {yetToWatch.map((value, index) => (
-              <View key={index} style={styles.eachYetToWatch}>
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                  }}>
-                  <View style={{marginRight: 10}}>
-                    <Icon name="target" size={20} color="red" />
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}>
+          <Text style={{fontSize: 20}}>Select the risk to view resources</Text>
+        </View>
+        <Picker
+          selectedValue={selectedValue}
+          style={styles.picker}
+          onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}>
+          {disease.map((value, index) => (
+            <Picker.Item label={value} value={value} key={index} />
+          ))}
+        </Picker>
+        <View style={styles.mainContainer}>
+          <View style={styles.yetToWatch}>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}>
+              <Text>Yet to watch</Text>
+            </View>
+            <View
+              style={{
+                borderRadius: 1,
+                borderRightWidth: 0,
+                borderLeftWidth: 0,
+                borderColor: 'black',
+              }}>
+              {yetToWatch.map((value, index) => (
+                <View key={index} style={styles.eachYetToWatch}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                    }}>
+                    <View style={{marginRight: 10}}>
+                      <Icon name="target" size={20} color="red" />
+                    </View>
+                    <View>
+                      <Text>{yetToWatch[index][0]}</Text>
+                      <Text>{yetToWatch[index][1]}</Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text>{yetToWatch[index][0]}</Text>
-                    <Text>{yetToWatch[index][1]}</Text>
-                  </View>
+                  <Icon name="external-link" size={20} color="black" />
                 </View>
-                <Icon name="external-link" size={20} color="black" />
-              </View>
-            ))}
+              ))}
+            </View>
+          </View>
+          <View style={styles.yetToWatch}>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}>
+              <Text>Completed</Text>
+            </View>
+            <View
+              style={{
+                borderRadius: 1,
+                borderRightWidth: 0,
+                borderLeftWidth: 0,
+                borderColor: 'black',
+              }}>
+              {completed.map((value, index) => (
+                <View key={index} style={styles.eachYetToWatch}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                    }}>
+                    <View style={{marginRight: 10}}>
+                      <IoniconsIcon
+                        name="checkmark-circle-outline"
+                        size={20}
+                        color="red"
+                      />
+                    </View>
+                    <View>
+                      <Text>{completed[index][0]}</Text>
+                      <Text>{completed[index][1]}</Text>
+                    </View>
+                  </View>
+                  <Icon name="external-link" size={20} color="black" />
+                </View>
+              ))}
+            </View>
           </View>
         </View>
-        <View style={styles.yetToWatch}>
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}>
-            <Text>Completed</Text>
-          </View>
-          <View
-            style={{
-              borderRadius: 1,
-              borderRightWidth: 0,
-              borderLeftWidth: 0,
-              borderColor: 'black',
-            }}>
-            {completed.map((value, index) => (
-              <View key={index} style={styles.eachYetToWatch}>
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                  }}>
-                  <View style={{marginRight: 10}}>
-                    <IoniconsIcon
-                      name="checkmark-circle-outline"
-                      size={20}
-                      color="red"
-                    />
-                  </View>
-                  <View>
-                    <Text>{completed[index][0]}</Text>
-                    <Text>{completed[index][1]}</Text>
-                  </View>
-                </View>
-                <Icon name="external-link" size={20} color="black" />
-              </View>
-            ))}
-          </View>
-        </View>
       </View>
-    </View>
+    </>
   );
 };
 

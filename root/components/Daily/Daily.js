@@ -2,6 +2,7 @@ import React from 'react';
 import {Button, Text, View, StyleSheet} from 'react-native';
 import DailyQuestionsResponse from '../DailyQuestionsResponse/DailyQuestionsResponse.js';
 import {useNavigation} from '@react-navigation/native';
+import Header from '../Header/Header.js';
 const Daily = () => {
   const history = [
     [['Response on 09/27/2024'], ['at 2:30PM']],
@@ -12,9 +13,13 @@ const Daily = () => {
   const navigation = useNavigation();
   return (
     <View style={styles.mainContainer}>
+      <Header />
       {/* <DailyQuestionsResponse /> */}
       <View style={{padding: 20}}>
-        <Button title="Take today's questionnaire" />
+        <Button
+          onPress={() => navigation.navigate('dq')}
+          title="Take today's questionnaire"
+        />
       </View>
 
       <View style={styles.viewHistory}>

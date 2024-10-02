@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, TextInput, StyleSheet, Button} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Header from '../Header/Header';
 const takeTitleBodyReturnNotification = (title, notification) => {
   return (
     <View style={styles.notifyBlock}>
@@ -30,6 +31,7 @@ const Notify = () => {
 
   return (
     <View style={{backgroundColor: 'rgb(226	244	254	)', height: '100%'}}>
+      <Header />
       <View
         style={{
           display: 'flex',

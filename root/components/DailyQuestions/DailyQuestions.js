@@ -3,7 +3,6 @@ import {View, Text, StyleSheet, ScrollView, Button} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-// import {ScrollView} from 'react-native-gesture-handler';
 const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
   if (question.type === 'dropdown') {
     return (
@@ -13,7 +12,7 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
           selectedValue={selectedValue}
           style={styles.picker}
           onValueChange={itemValue => setSelectedValue(itemValue)}>
-          {question.answer.map((option, i) => (
+          {question.options.map((option, i) => (
             <Picker.Item key={i} label={option} value={option} />
           ))}
         </Picker>
@@ -25,9 +24,7 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
         <Text style={styles.questionText}>{question.question}</Text>
         <View style={styles.optionsHolder}>
           {question.options.map((option, i) => (
-            <View
-              style={{display: 'flex', flexDirection: 'row', margin: 5}}
-              key={i}>
+            <View style={{display: 'flex', flexDirection: 'row', margin: 5}}>
               {question.answer != option ? (
                 <EntypoIcon name="circle" size={15} />
               ) : (
@@ -44,7 +41,7 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
   }
 };
 
-const DailyQuestionsResponse = props => {
+const DailyQuestions = props => {
   const {navigation} = props;
   const [selectedValue, setSelectedValue] = useState('4-5'); // For dropdown picker state
 
@@ -53,55 +50,46 @@ const DailyQuestionsResponse = props => {
       question: 'Have you taken 3L of water today?',
       options: ['yes', 'no'],
       type: 'single',
-      answer: 'yes',
     },
     {
       question: 'Did you consume any fruits or vegetables today?',
       options: ['yes', 'no'],
       type: 'single',
-      answer: 'no',
     },
     {
       question: 'How long do you sit (hrs)',
       options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
       type: 'dropdown',
-      answer: ['4-5'],
     },
     {
       question: 'Have you taken 3L of water today?',
       options: ['yes', 'no'],
       type: 'single',
-      answer: 'yes',
     },
     {
       question: 'Did you consume any fruits or vegetables today?',
       options: ['yes', 'no'],
       type: 'single',
-      answer: 'no',
     },
     {
       question: 'How long do you sit (hrs)',
       options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
       type: 'dropdown',
-      answer: ['4-5'],
     },
     {
       question: 'Have you taken 3L of water today?',
       options: ['yes', 'no'],
       type: 'single',
-      answer: 'yes',
     },
     {
       question: 'Did you consume any fruits or vegetables today?',
       options: ['yes', 'no'],
       type: 'single',
-      answer: 'no',
     },
     {
       question: 'How long do you sit (hrs)',
       options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
       type: 'dropdown',
-      answer: ['4-5'],
     },
   ];
 
@@ -114,11 +102,9 @@ const DailyQuestionsResponse = props => {
           </Text>
         </View>
         <View>
-          {questions.map((question, index) => (
-            <View key={index}>
-              {renderQuestion(question, index, selectedValue, setSelectedValue)}
-            </View>
-          ))}
+          {questions.map((question, index) =>
+            renderQuestion(question, index, selectedValue, setSelectedValue),
+          )}
         </View>
         <Button title="Back" onPress={() => navigation.goBack()} />
       </View>
@@ -167,4 +153,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DailyQuestionsResponse;
+export default DailyQuestions;
