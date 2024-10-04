@@ -1,0 +1,10 @@
+.question-filters {
+    display: flex;
+    justify-content: space-between;
+}
+.question-dropdown {
+    margin: 0.5rem
+}
+.question-search {
+    margin-left: auto;
+}

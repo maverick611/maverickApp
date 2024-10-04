@@ -1,0 +1,39 @@
+.login {
+  background-color: #d3e6c6; /* light green background */
+  padding: 40px;
+  max-width: 400px;
+  margin: 100px auto;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login form {
+  display: flex;
+  text-align: left;
+  flex-direction: column;
+}
+
+.login input {
+  margin-bottom: 15px;
+}
+
+.login button {
+  margin-top: 15px;
+}
+
+.login p {
+  text-align: center;
+  margin-top: 10px;
+  color: #666;
+}
+
+.mainLogo {
+  height: 80px;
+  width: 320px;
+  margin-top: 40px;
+}

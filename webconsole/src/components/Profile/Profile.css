@@ -1,0 +1,62 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-content {
+  display: flex;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info {
+  margin: 2rem;
+  padding: 20px;
+  font-size: 40px;
+  text-align: left;
+  display: flex;
+}
+
+.text-left {
+  margin-left: 1rem;
+}
+
+
+.info-text {
+  margin-top: 0.5rem;
+  font-size: smaller;
+  color: burlywood;
+}
+
+.profile-form {
+  margin: 2rem;
+}
+
+.profile-form-password {
+  margin-top: 0rem;
+  margin-right: 2rem;
+  margin-left: 2rem;
+  margin-bottom: 2rem;
+}
+
+.profile-form-password h3 {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.profile-form h3 {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.profile-btn {
+  margin-left: 6rem;
+  margin-right: 4rem;
+  margin-bottom: 4rem;
+  margin-top: 0.6rem;
+  width: 200px;
+  height: 30px;
+}
