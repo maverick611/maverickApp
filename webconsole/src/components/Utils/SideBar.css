@@ -1,0 +1,47 @@
+/* Sidebar container styling */
+.sidebar {
+  width: 220px; /* Set the width of the sidebar */
+  background-color: #065392; /* Navy blue background */
+  height: 100vh; 
+}
+
+/* Remove bullets from list and add padding */
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual list items (menu links) */
+.sidebar ul li {
+  padding: 15px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover effect for the sidebar items */
+.sidebar ul li:hover {
+  background-color: #A6D9EF; /* Lighter blue on hover */
+}
+
+/* Active item (currently selected) */
+.sidebar ul li.active {
+  background-color: #62c1ea; /* Highlight the active item */
+  color: white;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .sidebar {
+    width: 180px; /* Narrower sidebar on smaller screens */
+  }
+
+  .sidebar ul li {
+    font-size: 14px; /* Smaller text for narrow screens */
+    padding: 10px;
+  }
+}
