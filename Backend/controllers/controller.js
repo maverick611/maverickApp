@@ -23,12 +23,12 @@ const pool = require('../database'); // Database connection
 const login = async (req, res) => {
     const { username, password } = req.body; // Get username and password from the request body
     try {
-        // Query the user based on email
+
         const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (user.rows.length === 0) {
             return res.status(404).json({ error: 'User not found' }); // User not found
         }
-        // Compare the plain text password directly
+
         if (user.rows[0].password !== password) {
             return res.status(401).json({ error: 'Invalid password' }); // Invalid password
         }
