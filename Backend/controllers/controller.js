@@ -115,36 +115,32 @@ const questionnaire = async (req, res) => {
                 q.question_id,
                 q.question,
                 q.question_type,
-                ARRAY_AGG(DISTINCT o.options) AS options,
-                ARRAY_AGG(DISTINCT jsonb_build_object('disease_id', w.disease_id, 'weight', w.weightage)) AS weightage
+                w.disease_id,
+                jsonb_object_agg(o.options, w.weightage) AS options_weightage
             FROM 
                 questions q
             LEFT JOIN 
                 options o ON q.question_id = o.question_id
             LEFT JOIN 
-                questions_disease_weightage w ON q.question_id = w.question_id
+                questions_disease_weightage w ON q.question_id = w.question_id AND o.options = w.options
             GROUP BY 
-                q.question_id, q.question, q.question_type
+                q.question_id, q.question, q.question_type, w.disease_id
         `);
 
         const questions = result.rows.map(row => ({
             question_id: row.question_id,
             question: row.question,
-            options: row.options,   // options are directly aggregated, no need to split
+            options: row.options_weightage,  
             type: row.question_type,
-            weightage: row.weightage
+            disease_id: row.disease_id
         }));
 
-        res.status(200).json(questions); // Return the list of questions with options and weightage
+        res.status(200).json(questions); 
     } catch (error) {
         console.error('error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
-
-
-  
 
 
 module.exports = {login, signup, auth, questionnaire};
