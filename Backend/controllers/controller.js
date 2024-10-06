@@ -1,5 +1,5 @@
 const pool = require('../database'); // Database connection
-// const bcrypt = require('bcrypt'); // For password hashing
+const bcrypt = require('bcrypt'); // For password hashing
 // const jwt = require('jsonwebtoken'); // For generating tokens
 
 // Signup function
@@ -39,7 +39,47 @@ const login = async (req, res) => {
     }
 };
 
+// Signup function
+const signup = async (req, res) => {
+    const { firstName, lastName, username, phoneNumber, password, confirmPassword, dateOfBirth, email } = req.body;
 
-module.exports = {login};
+    //comment ou if checked in frontend
+    if (password !== confirmPassword){
+        return res.status(400).json({error:'passwords dont match'});
+    }
+    try{
+        const existingEmail = pool.query('SELECT * from users where email = $1', [email]);
+
+        // console.log(existingEmail)
+        // console.table(existingEmail)
+
+        if ((await existingEmail).rows.length > 0){
+            return res.status(409).json({error:"email is already registered"});
+        }
+
+        const hashedPassword = await bcrypt .hash(password,10);
+
+        const newUser = await pool.query(      'INSERT INTO users (first_name, last_name, username, phone, password, dob, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id',
+            [firstName, lastName, username, phoneNumber, hashedPassword, dateOfBirth, email] // Use hashed password
+        );
+
+        // console.log(newUser)
+        // console.table(newUser)
+
+        return res.status(200).json({message : 'new user added succesfully',
+            userID : newUser.rows[0].user_id,
+            });
+
+    }
+
+    catch(error){
+        console.error('error',error);
+        return res.status(500).json({error:'server error'});   
+    }
+};
+
+
+
+module.exports = {login, signup};
 
 
