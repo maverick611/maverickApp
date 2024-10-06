@@ -48,6 +48,8 @@ const styles = StyleSheet.create({
   },
   profile: {
     padding: 3,
+    paddingLeft: 9,
+    paddingRight: 9,
     backgroundColor: 'rgb(176	216	236	)',
   },
   logo: {

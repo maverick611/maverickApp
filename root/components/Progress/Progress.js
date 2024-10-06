@@ -53,14 +53,18 @@ const Progress = () => {
           }}>
           <Text style={{fontSize: 20}}>Select the risk to view resources</Text>
         </View>
-        <Picker
-          selectedValue={selectedValue}
-          style={styles.picker}
-          onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}>
-          {disease.map((value, index) => (
-            <Picker.Item label={value} value={value} key={index} />
-          ))}
-        </Picker>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedValue}
+            style={styles.picker}
+            onValueChange={(itemValue, itemIndex) =>
+              setSelectedValue(itemValue)
+            }>
+            {disease.map((value, index) => (
+              <Picker.Item label={value} value={value} key={index} />
+            ))}
+          </Picker>
+        </View>
         <View style={styles.mainContainer}>
           <View style={styles.yetToWatch}>
             <View
@@ -151,12 +155,32 @@ const styles = StyleSheet.create({
     width: '80%',
     borderRadius: 10,
   },
+  // picker: {
+  //   width: 200,
+  //   height: 45,
+  //   backgroundColor: '#FFF',
+  //   borderColor: 'black',
+  //   borderWidth: 1,
+  // },
+  // pickerContainer: {
+  //   borderWidth: 1,
+  //   // borderColor: '#007AFF',
+  //   borderRadius: 8,
+  //   overflow: 'hidden',
+  // },
+  pickerContainer: {
+    borderWidth: 1,
+    // margin: 'auto',
+    // borderColor: '#007AFF',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
   picker: {
     width: 200,
-    height: 20,
+    height: 45,
     backgroundColor: '#FFF',
-    borderColor: 'black',
-    borderWidth: 1,
+    // paddingBottom: 15,
+    // color: '#333',
   },
   yetToWatch: {
     padding: 30,

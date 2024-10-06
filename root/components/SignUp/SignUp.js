@@ -2,16 +2,24 @@ import React from 'react';
 import {View, Text, TextInput, StyleSheet, Button} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import EntypoIcon from 'react-native-vector-icons/Entypo';
 const takePlaceHolderAndLogoReturnTextInput = (logo, placeHolder) => {
-  const myIcon = (
-    <Icon
-      name={logo}
-      size={logo == 'calendar' ? 26 : 30}
-      color="#900"
-      style={{marginTop: 10}}
-    />
-  );
+  const myIcon =
+    logo == 'mail' ? (
+      <EntypoIcon
+        name={logo}
+        size={logo == 'calendar' ? 26 : 30}
+        color="#900"
+        style={{marginTop: 10}}
+      />
+    ) : (
+      <Icon
+        name={logo}
+        size={logo == 'calendar' ? 26 : 30}
+        color="#900"
+        style={{marginTop: 10}}
+      />
+    );
 
   return (
     <View
@@ -37,7 +45,7 @@ const SignUp = props => {
     Password: 'lock',
     'Confirm Password': 'lock',
     'Date of Birth': 'calendar',
-    Email: 'email',
+    Email: 'mail',
   };
   const fields = [
     'First Name',

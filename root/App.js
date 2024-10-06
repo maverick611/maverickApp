@@ -13,7 +13,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 import Ionicons from 'react-native-vector-icons/Ionicons.js';
 import DailyQuestions from './components/DailyQuestions/DailyQuestions.js';
-
+import LongQuestionnaire from './components/LongQuestionnaire/LongQuestionnaire.js';
 import {
   SafeAreaView,
   ScrollView,
@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import Avatar from './components/Avatar/Avatar.js';
 import Profile from './components/Profile/Profile.js';
+import LongQuestionnaireResponses from './components/LongQuestionnaireResponses/LongQuestionnaireResponses.js';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -77,13 +78,27 @@ const App = () => {
           component={DailyQuestionsResponse}
           options={{title: 'Your Response'}}
         />
-        <Stack.Screen name="dq" component={DailyQuestions} />
+        <Stack.Screen
+          name="dq"
+          component={DailyQuestions}
+          options={{title: "Today's Questionnaire"}}
+        />
+        <Stack.Screen
+          name="LongQuestionnaire"
+          component={LongQuestionnaire}
+          options={{title: 'Your Personalised Questionnare'}}
+        />
+        <Stack.Screen
+          name="LongQuestionnaireResponses"
+          component={LongQuestionnaireResponses}
+          options={{title: 'Your Response'}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   ) : (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Login">
+        <Stack.Screen name="Login" options={{headerShown: false}}>
           {props => <Login {...props} setIsAuth={setIsAuth} />}
         </Stack.Screen>
         <Stack.Screen name="SignUp" component={SignUp} />

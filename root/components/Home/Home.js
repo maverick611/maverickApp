@@ -1,10 +1,24 @@
 import React from 'react';
-import {Image, Text, View, StyleSheet, Button} from 'react-native';
+import {Image, Text, View, StyleSheet, Button, Linking} from 'react-native';
 import Header from '../Header/Header';
-const Home = () => {
+import {ScrollView} from 'react-native-gesture-handler';
+
+const handlePress = async () => {
+  const url = 'market://details?id=com.android.chrome';
+  const supported = await Linking.canOpenURL(url);
+
+  if (supported) {
+    await Linking.openURL(url);
+  } else {
+    console.log(`Don't know how to open this URL: ${url}`);
+  }
+};
+
+const Home = props => {
+  const {navigation} = props;
   const aboutUsImage = require('../../assets/homeAboutUsImage.jpg');
   return (
-    <View style={{flex: 1, backgroundColor: 'rgb(226	244	254	)'}}>
+    <ScrollView style={{flex: 1, backgroundColor: 'rgb(226	244	254	)'}}>
       <Header />
       <View
         style={{
@@ -33,13 +47,16 @@ const Home = () => {
           />
         </View>
         <View style={{margin: 10}}>
-          <Button title="Take Questionnaire" />
+          <Button
+            onPress={() => navigation.navigate('LongQuestionnaire')}
+            title="Take Questionnaire"
+          />
         </View>
         <View style={{margin: 10}}>
-          <Button title="Maverick Website" />
+          <Button onPress={handlePress} title="Maverick Website" />
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

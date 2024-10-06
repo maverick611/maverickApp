@@ -3,9 +3,19 @@ import {Button, Text, View, StyleSheet} from 'react-native';
 import DailyQuestionsResponse from '../DailyQuestionsResponse/DailyQuestionsResponse.js';
 import {useNavigation} from '@react-navigation/native';
 import Header from '../Header/Header.js';
+import {ScrollView} from 'react-native-gesture-handler';
 const Daily = () => {
   const history = [
     [['Response on 09/27/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
+    [['Response on 07/25/2024'], ['at 2:30PM']],
     [['Response on 07/25/2024'], ['at 2:30PM']],
     [['Response on 07/25/2024'], ['at 2:30PM']],
     [['Response on 07/25/2024'], ['at 2:30PM']],
@@ -23,30 +33,34 @@ const Daily = () => {
       </View>
 
       <View style={styles.viewHistory}>
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}>
-          <Text style={{fontSize: 22}}>View history</Text>
-        </View>
-        <View>
-          {history.map((value, index) => {
-            return (
-              <View style={styles.eachHistoryHolder} key={index}>
-                <View>
-                  <Text>{history[index][0]}</Text>
-                  <Text>{history[index][1]}</Text>
+        <ScrollView>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}>
+            <Text style={{fontSize: 22}}>View history</Text>
+          </View>
+          <View>
+            {history.map((value, index) => {
+              return (
+                <View style={styles.eachHistoryHolder} key={index}>
+                  <View>
+                    <Text>{history[index][0]}</Text>
+                    <Text>{history[index][1]}</Text>
+                  </View>
+                  <Button
+                    title="See Response"
+                    onPress={() =>
+                      navigation.navigate('DailyQuestionsResponse')
+                    }
+                  />
                 </View>
-                <Button
-                  title="See Response"
-                  onPress={() => navigation.navigate('DailyQuestionsResponse')}
-                />
-              </View>
-            );
-          })}
-        </View>
+              );
+            })}
+          </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -61,6 +75,7 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 20,
     borderWidth: 1,
+    maxHeight: '80%',
   },
   mainContainer: {
     backgroundColor: 'rgb(226	244	254	)',

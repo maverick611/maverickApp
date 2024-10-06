@@ -3,13 +3,15 @@ import {Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {BarChart} from 'react-native-chart-kit';
 import Header from '../Header/Header';
-const Reports = () => {
+import {ScrollView} from 'react-native-gesture-handler';
+const Reports = props => {
+  const {navigation} = props;
   const responseDates = [
     ['Report on 09/27/2024', 'at 2:30PM'],
     ['Report on 05/25/2024', 'at 2:30PM'],
     ['Report on 03/25/2024', 'at 2:30PM'],
-    // ['Report on 01/25/2024', 'at 2:30PM'],
-    // ['Report on 11/25/2023', 'at 2:30PM'],
+    ['Report on 01/25/2024', 'at 2:30PM'],
+    ['Report on 11/25/2023', 'at 2:30PM'],
   ];
   const disease = [
     'osteoporosis',
@@ -57,51 +59,55 @@ const Reports = () => {
   return (
     <View>
       <Header />
-      <View
-        style={{
-          borderWidth: 2,
-          padding: 10,
-          margin: 5,
-          backgroundColor: '#E2F2D7',
-          borderRadius: 6,
-          margin: 10,
-        }}>
-        <Text>VIEW HISTORY</Text>
-        {responseDates.map((date, index) => {
-          return (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                borderWidth: 2,
-                justifyContent: 'space-around',
-                margin: 10,
-                paddingBottom: 2,
-                borderTopWidth: 0,
-                borderRightWidth: 0,
-                borderLeftWidth: 0,
-              }}
-              key={index}>
+      <View style={styles.ViewHistory}>
+        <ScrollView>
+          <View style={styles.ViewHistoryText}>
+            <Text>VIEW HISTORY</Text>
+          </View>
+          {responseDates.map((date, index) => {
+            return (
               <View
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                }}>
-                <Text>{responseDates[index][0]}</Text>
-                <Text>{responseDates[index][1]}</Text>
-              </View>
-              <View style={{padding: 1}}>
-                <View style={{margin: 1}}>
-                  <Button title="View Response" />
+                  flexDirection: 'row',
+                  borderWidth: 2,
+                  justifyContent: 'space-around',
+                  margin: 10,
+                  paddingBottom: 2,
+                  borderTopWidth: 0,
+                  borderRightWidth: 0,
+                  borderLeftWidth: 0,
+                }}
+                key={index}>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                  }}>
+                  <Text>{responseDates[index][0]}</Text>
+                  <Text>{responseDates[index][1]}</Text>
                 </View>
-                <View style={{margin: 1}}>
-                  <Button title="View Report" />
+                <View style={{padding: 1}}>
+                  <View style={{margin: 1}}>
+                    <Button
+                      onPress={() => navigation.navigate('LongQuestionnaire')}
+                      title="View Response"
+                    />
+                  </View>
+                  <View style={{margin: 1}}>
+                    <Button
+                      onPress={() =>
+                        navigation.navigate('LongQuestionnaireResponses')
+                      }
+                      title="View Report"
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </ScrollView>
       </View>
       <View
         style={{
@@ -121,16 +127,18 @@ const Reports = () => {
             <Text style={{fontSize: 20}}>Select to view progress</Text>
           </View>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            <Picker
-              selectedValue={selectedValue}
-              style={styles.picker}
-              onValueChange={(itemValue, itemIndex) =>
-                setSelectedValue(itemValue)
-              }>
-              {disease.map((value, index) => (
-                <Picker.Item label={value} value={value} key={index} />
-              ))}
-            </Picker>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedValue}
+                style={styles.picker}
+                onValueChange={(itemValue, itemIndex) =>
+                  setSelectedValue(itemValue)
+                }>
+                {disease.map((value, index) => (
+                  <Picker.Item label={value} value={value} key={index} />
+                ))}
+              </Picker>
+            </View>
           </View>
           <View>
             <BarChart
@@ -165,12 +173,31 @@ const Reports = () => {
 };
 
 const styles = StyleSheet.create({
+  pickerContainer: {
+    borderWidth: 1,
+    // margin: 'auto',
+    // borderColor: '#007AFF',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
   picker: {
     width: 200,
-    height: 30,
+    height: 45,
     backgroundColor: '#FFF',
-    borderColor: 'black',
-    borderWidth: 1,
+    // paddingBottom: 15,
+    // color: '#333',
+  },
+  ViewHistory: {
+    borderWidth: 2,
+    padding: 10,
+    margin: 5,
+    backgroundColor: '#E2F2D7',
+    borderRadius: 6,
+    margin: 10,
+    maxHeight: '48%',
+  },
+  ViewHistoryText: {
+    margin: 'auto',
   },
 });
 
