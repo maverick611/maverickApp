@@ -1,15 +1,14 @@
-const pool = require('../database'); // Database connection
-const bcrypt = require('bcrypt'); // For password hashing
-const jwt = require('jsonwebtoken'); // For generating tokens
+const pool = require('../database'); 
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); 
 
-// authenticate user based on JWT
 const auth = async (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.userId = decoded.id; // Extract user ID from token
+        req.userId = decoded.id; 
         next();
     } catch (error) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -21,14 +20,14 @@ const auth = async (req, res, next) => {
 
 // Login function
 const login = async (req, res) => {
-    const { username, password } = req.body; // Get username and password from the request body
+    const { username, password } = req.body; 
     try {
 
         const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
 
 
         if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'User not found' }); // User not found
+            return res.status(400).json({ error: 'User not found' }); 
         }
 
         const user = result.rows[0];
@@ -41,7 +40,7 @@ const login = async (req, res) => {
 
 
         if (!comparePasswords) {
-            return res.status(401).json({ error: 'Invalid password' }); // Invalid password
+            return res.status(401).json({ error: 'Invalid password' }); 
         }
 
         const token = jwt.sign({id: user.user_id}, process.env.JWT_SECRET,{expiresIn: "1h"});
@@ -49,20 +48,22 @@ const login = async (req, res) => {
         res.status(200).json({ message: 'Login successful' ,
             userID : user.user_id,
             token
-            }); // Successful login
+            }); 
 
     } catch (error) {
         console.error('error:', error);
-        res.status(500).json({ error: 'Server Error' }); // Handle errors
+        res.status(500).json({ error: 'Server Error' }); 
     }
 };
 
-
+let newUserDetails = null;
 
 
 // Signup function
 const signup = async (req, res) => {
     const { firstName, lastName, username, phoneNumber, password, confirmPassword, dateOfBirth, email } = req.body;
+
+
 
     //comment ou if checked in frontend
     if (password !== confirmPassword){
@@ -78,36 +79,89 @@ const signup = async (req, res) => {
             return res.status(409).json({error:"email is already registered"});
         }
 
-        const existingUsername = pool.query('SELECT * from users where phone = $1', [phoneNumber]);
+        const existingUsername = pool.query('SELECT * from users where username = $1', [username]);
 
 
         if ((await existingUsername).rows.length > 0){
             return res.status(409).json({error:"please use different username"});
         }
 
-        const hashedPassword = await bcrypt .hash(password,10);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        newUserDetails = {
+            firstName,
+            lastName,
+            username,
+            phoneNumber,
+            hashedPassword,
+            dateOfBirth,
+            email
+        };
 
-        const newUser = await pool.query(      'INSERT INTO users (first_name, last_name, username, phone, password, dob, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id',
-            [firstName, lastName, username, phoneNumber, hashedPassword, dateOfBirth, email] // Use hashed password
-        );
+        return res.status(200).json({ message: 'User created successfully. Please confirm email and phone.' });
 
-        // console.log(newUser)
-        // console.table(newUser)
-
-        const token = jwt.sign({id: newUser.rows[0].user_id}, process.env.JWT_SECRET,{expiresIn: "1h"});
-
-        return res.status(200).json({message : 'new user added succesfully',
-            userID : newUser.rows[0].user_id,
-            token
-            });
-
-    }
-
-    catch(error){
-        console.error('error:',error);
-        return res.status(500).json({error:'server error'});   
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Server error' });
     }
 };
+
+
+
+
+const confirmationCodes = {
+    phoneCode: "123456",
+    emailCode: "123456" 
+};
+
+
+
+// Confirm signup
+const confirm_signup = async (req, res) => {
+    const { phoneCode, emailCode } = req.body;
+
+    if (phoneCode === confirmationCodes.phoneCode && emailCode === confirmationCodes.emailCode) {
+        if (!newUserDetails) {
+            return res.status(400).json({ error: "something is wrong" });
+        }
+
+        try {
+            const newUser = await pool.query(
+                'INSERT INTO users (first_name, last_name, username, phone, password, dob, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id',
+                [
+                    newUserDetails.firstName,
+                    newUserDetails.lastName,
+                    newUserDetails.username,
+                    newUserDetails.phoneNumber,
+                    newUserDetails.hashedPassword,
+                    newUserDetails.dateOfBirth,
+                    newUserDetails.email
+                ]
+            );
+
+            const token = jwt.sign({ id: newUser.rows[0].user_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+
+            newUserDetails = null;
+
+            return res.status(200).json({
+                message: "Email and phone successfully confirmed.",
+                userID: newUser.rows[0].user_id,
+                token
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            return res.status(500).json({ error: 'Server error' });
+        }
+    } else {
+        return res.status(400).json({
+            error: "Invalid confirmation codes provided."
+        });
+    }
+};
+
+
+
+
 
 
 
@@ -213,6 +267,6 @@ const questionnaire_responses = async (req, res) => {
 
 
 
-module.exports = {login, signup, auth, questionnaire, questionnaire_responses};
+module.exports = {login, signup, confirm_signup, auth, questionnaire, questionnaire_responses};
 
 
