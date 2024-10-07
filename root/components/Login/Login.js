@@ -1,5 +1,5 @@
 // import React from 'react';
-import React from 'react';
+import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
   Button,
@@ -14,19 +14,71 @@ import {
 const localImage = require('./Logo.png');
 const Login = props => {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
   const {setIsAuth} = props;
+  const [postData, setPostData] = useState({username: '', password: ''});
+  const [errorMsg, showErrorMsg] = useState('');
+
+  const setUserName = text => {
+    setPostData(prevValue => ({...prevValue, username: text}));
+    // console.log(postData);
+  };
+
+  const setPassword = text => {
+    setPostData(prevValue => ({...prevValue, password: text}));
+  };
+
+  const checkLogin = async () => {
+    setLoading(true);
+    showErrorMsg('');
+
+    try {
+      const response = await fetch('http://10.0.2.2:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      });
+      const statusCode = response.status;
+      const result = await response.json();
+      if (response.ok) {
+        setIsAuth(true);
+      } else {
+        showErrorMsg(JSON.stringify(result.error));
+      }
+    } catch (err) {
+      console.log('something happened');
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.mainContainer}>
       <View>
         <Image source={localImage} style={styles.image} resizeMode="contain" />
       </View>
+      {errorMsg != '' && <Text style={styles.errorCode}>{errorMsg}</Text>}
       <View style={styles.loginBox}>
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
           <Text>Login</Text>
         </View>
-        <TextInput style={styles.input} placeholder="username" />
-        <TextInput style={styles.input} placeholder="password" />
-        <Button title="Login" onPress={() => setIsAuth(true)} />
+        <TextInput
+          style={styles.input}
+          onChangeText={text => setUserName(text)}
+          value={postData.username}
+          placeholder="username"
+        />
+        <TextInput
+          value={postData.password}
+          onChangeText={text => setPassword(text)}
+          secureTextEntry={true}
+          style={styles.input}
+          placeholder="password"
+        />
+        <Button title="Login" onPress={checkLogin} />
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
           <Text>
             Not yet registered?{' '}
@@ -41,6 +93,10 @@ const Login = props => {
 };
 
 const styles = StyleSheet.create({
+  errorCode: {
+    color: 'red',
+    // fontSize: '20',
+  },
   mainContainer: {
     borderWidth: 1,
     // borderColor: 'red',
