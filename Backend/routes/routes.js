@@ -13,12 +13,14 @@
 
 const express = require('express');
 const router = express.Router();
-const {login, signup, auth, questionnaire } = require('../controllers/controller');
+const {login, signup, auth, questionnaire, questionnaire_responses } = require('../controllers/controller');
 
 // router.post('/signup', signup);
 
 router.post('/login', login);
 router.post('/signup', signup)
 router.get('/questionnaire', auth, questionnaire); 
+router.get('/questionnaire_responses', auth, questionnaire_responses); 
+
 
 module.exports = router;

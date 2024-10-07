@@ -78,6 +78,13 @@ const signup = async (req, res) => {
             return res.status(409).json({error:"email is already registered"});
         }
 
+        const existingUsername = pool.query('SELECT * from users where phone = $1', [phoneNumber]);
+
+
+        if ((await existingUsername).rows.length > 0){
+            return res.status(409).json({error:"please use different username"});
+        }
+
         const hashedPassword = await bcrypt .hash(password,10);
 
         const newUser = await pool.query(      'INSERT INTO users (first_name, last_name, username, phone, password, dob, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id',
@@ -143,6 +150,69 @@ const questionnaire = async (req, res) => {
 };
 
 
-module.exports = {login, signup, auth, questionnaire};
+
+
+const questionnaire_responses = async (req, res) => {
+    const { responses } = req.body;
+    const user_id = req.userId; 
+
+    try {
+        
+        const submissionResult = await pool.query(
+            'INSERT INTO submissions (user_id, timestamp) VALUES ($1, NOW()) RETURNING submission_id',
+            [user_id]
+        );
+
+        const submission_id = submissionResult.rows[0].submission_id; 
+
+        const results = [];
+
+
+        for (const response of responses) {
+            const { question_id, options_selected } = response;
+
+
+            for (const option of options_selected) {
+                await pool.query(
+                    'INSERT INTO responses (question_id, answer, submission_id) VALUES ($1, $2, $3)',
+                    [question_id, option, submission_id]
+                );
+            }
+
+
+            const weightQuery = `
+                SELECT options, disease_id, weightage 
+                FROM questions_disease_weightage 
+                WHERE question_id = $1 AND options = ANY($2::text[])
+            `;
+            const weightValues = await pool.query(weightQuery, [question_id, options_selected]);
+
+            const optionWeights = {};
+
+            weightValues.rows.forEach(row => {
+                const { options, disease_id, weightage } = row;
+                optionWeights[options] = weightage; 
+                results.push({
+                    question_id,
+                    options_selected: optionWeights,
+                    disease_id,
+                    submission_id: submission_id
+                });
+            });
+        }
+
+
+        res.status(200).json(results);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+
+
+module.exports = {login, signup, auth, questionnaire, questionnaire_responses};
 
 
