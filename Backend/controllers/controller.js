@@ -97,7 +97,7 @@ const signup = async (req, res) => {
             email
         };
 
-        return res.status(200).json({ message: 'User created successfully. Please confirm email and phone.' });
+        return res.status(200).json({ message: 'User created successfully. codes sent to email and phone.' });
 
     } catch (error) {
         console.error('Error:', error);
