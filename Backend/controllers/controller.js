@@ -67,7 +67,7 @@ const signup = async (req, res) => {
 
     //comment ou if checked in frontend
     if (password !== confirmPassword){
-        return res.status(400).json({error:'passwords dont match'});
+        return res.status(400).json({error:'Passwords do not match'});
     }
     try{
         const existingEmail = pool.query('SELECT * from users where email = $1', [email]);
@@ -76,14 +76,14 @@ const signup = async (req, res) => {
         // console.table(existingEmail)
 
         if ((await existingEmail).rows.length > 0){
-            return res.status(409).json({error:"email is already registered"});
+            return res.status(409).json({error:"Email is already registered"});
         }
 
         const existingUsername = pool.query('SELECT * from users where username = $1', [username]);
 
 
         if ((await existingUsername).rows.length > 0){
-            return res.status(409).json({error:"please use different username"});
+            return res.status(409).json({error:"Please use different username"});
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -121,7 +121,7 @@ const confirm_signup = async (req, res) => {
 
     if (phoneCode === confirmationCodes.phoneCode && emailCode === confirmationCodes.emailCode) {
         if (!newUserDetails) {
-            return res.status(400).json({ error: "something is wrong" });
+            return res.status(400).json({ error: "Something is wrong" });
         }
 
         try {
@@ -205,6 +205,7 @@ const questionnaire = async (req, res) => {
 
 
 
+//responses function
 
 const questionnaire_responses = async (req, res) => {
     const { responses } = req.body;
