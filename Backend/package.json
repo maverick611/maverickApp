@@ -10,6 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.0"
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.0",
+    "pg": "^8.13.0",
+    "uuid": "^10.0.0"
   }
 }
