@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import './Table.css';
+import SearchBar from '../Utils/SearchBar';
 
 const UserTable = () => {
   const [existingUsers, setExistingUsers] = useState([
@@ -65,15 +66,10 @@ const UserTable = () => {
 
   return (
     <div className="user-table">
-      <h3>Existing Users</h3>
-      <span className='user-search'>
-        <FaSearch />
-        <input
-          style={BarStyle}
-          key="search-bar"
-          placeholder={"search with keywords"}
-        />
-      </span>
+      <div className='user-section'>
+        <h3>Existing Users</h3>
+        <SearchBar />
+      </div>
       <table>
         <thead>
           <tr>

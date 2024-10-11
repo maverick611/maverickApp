@@ -1,5 +1,6 @@
 .login {
-  background-color: #d3e6c6; /* light green background */
+  background-color: #d3e6c6;
+  /* light green background */
   padding: 40px;
   max-width: 400px;
   margin: 100px auto;
@@ -28,8 +29,8 @@
 
 .login p {
   text-align: center;
-  margin-top: 10px;
-  color: #666;
+  color: red;
+  margin-bottom: 20px;
 }
 
 .mainLogo {

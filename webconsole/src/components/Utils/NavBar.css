@@ -21,7 +21,8 @@
 }
 
 .navbar-logo h1 {
-  color: #4a773c; /* Darker green for the text */
+  color: #4a773c;
+  /* Darker green for the text */
   font-size: 24px;
   font-family: 'Arial', sans-serif;
   font-weight: bold;
@@ -44,10 +45,12 @@
   display: flex;
   color: white;
 }
-.navbar-links .login-btn span{
+
+.navbar-links .login-btn span {
   margin-left: 0.5rem;
 }
 
 .navbar-links .login-btn:hover {
-  background-color: #639032; /* Slightly darker shade on hover */
+  background-color: #639032;
+  /* Slightly darker shade on hover */
 }

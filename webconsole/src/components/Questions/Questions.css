@@ -2,9 +2,64 @@
     display: flex;
     justify-content: space-between;
 }
+
 .question-dropdown {
     margin: 0.5rem
 }
+
 .question-search {
     margin-left: auto;
+}
+
+.popup-overlay {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    left: 100px;
+    top: 10px;
+}
+
+.popup-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.popup-content div {
+    margin-bottom: 10px;
+}
+
+.popup-content button {
+    margin-right: 10px;
+}
+
+.edit-question {
+    display: flex;
+}
+
+.input-question {
+    margin: 0;
+}
+
+.question-btn-cancel {
+    padding: 8px;
+    background-color: #ccc;
+    color: white;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0%;
+}
+
+.question-btn-submit {
+    padding: 8px;
+    background-color: #007c72;
+    color: white;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
