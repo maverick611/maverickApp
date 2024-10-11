@@ -1,14 +1,28 @@
 import React from 'react';
-import {View, Text} from 'react-native';
-import {Image} from 'react-native-svg';
-const avatar = require('../../assets/avatar.png');
+import {Image, View, Text, Button, StyleSheet} from 'react-native';
+const avatar = require('../../assets/avatar1.png');
 const Avatar = () => {
   return (
-    <View>
+    <View style={styles.mainContainer}>
       <Text>Current Avthar</Text>
-      {/* <Image source={avatar} /> */}
+      <Image source={avatar} style={styles.avatarImage} />
+      <Button title="Make Your Avatar" />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  mainContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarImage: {
+    margin: 20,
+    width: '70%',
+    height: '70%',
+    borderRadius: 40,
+  },
+});
 
 export default Avatar;

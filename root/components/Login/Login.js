@@ -1,6 +1,7 @@
 // import React from 'react';
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import {
   Button,
   Image,
@@ -18,6 +19,7 @@ const Login = props => {
   const {setIsAuth} = props;
   const [postData, setPostData] = useState({username: '', password: ''});
   const [errorMsg, showErrorMsg] = useState('');
+  const [showPassword, setShowPassword] = useState(true);
 
   const setUserName = text => {
     setPostData(prevValue => ({...prevValue, username: text}));
@@ -31,7 +33,6 @@ const Login = props => {
   const checkLogin = async () => {
     setLoading(true);
     showErrorMsg('');
-
     try {
       const response = await fetch('http://10.0.2.2:3000/login', {
         method: 'POST',
@@ -65,19 +66,30 @@ const Login = props => {
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
           <Text>Login</Text>
         </View>
-        <TextInput
-          style={styles.input}
-          onChangeText={text => setUserName(text)}
-          value={postData.username}
-          placeholder="username"
-        />
-        <TextInput
-          value={postData.password}
-          onChangeText={text => setPassword(text)}
-          secureTextEntry={true}
-          style={styles.input}
-          placeholder="password"
-        />
+        <View style={styles.TextInputContainer}>
+          <FontAwesomeIcon name="user" size={25} />
+          <TextInput
+            style={styles.input}
+            onChangeText={text => setUserName(text)}
+            value={postData.username}
+            placeholder="username"
+          />
+        </View>
+        <View style={styles.TextInputContainer}>
+          <TextInput
+            value={postData.password}
+            onChangeText={text => setPassword(text)}
+            secureTextEntry={showPassword}
+            style={styles.input}
+            placeholder="password"
+          />
+          <TouchableOpacity onPress={() => setShowPassword(prev => !prev)}>
+            <FontAwesomeIcon
+              name={showPassword ? 'eye-slash' : 'eye'}
+              size={20}
+            />
+          </TouchableOpacity>
+        </View>
         <Button title="Login" onPress={checkLogin} />
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
           <Text>
@@ -97,6 +109,18 @@ const styles = StyleSheet.create({
     color: 'red',
     // fontSize: '20',
   },
+  TextInputContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    borderColor: 'black',
+    borderWidth: 2,
+    backgroundColor: 'white',
+    padding: 3,
+    margin: 5,
+    // backgroundColor: 'red',
+  },
   mainContainer: {
     borderWidth: 1,
     // borderColor: 'red',
@@ -105,12 +129,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   input: {
-    height: 40,
-    margin: 6,
-    borderWidth: 2,
-    borderColor: 'black',
-    padding: 10,
+    height: 30,
+    margin: 3,
+    padding: 2,
     backgroundColor: 'white',
+    flex: 1,
   },
   loginBox: {
     padding: 50,

@@ -8,7 +8,14 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-const Profile = () => {
+const Profile = props => {
+  const {setIsAuth} = props;
+  const {navigation} = props;
+  const onClickComponentToShow = {
+    'PERSONAL INFORMATION': 'UpdateProfilePicture',
+    'UPDATE PROFILE PICTURE': 'UpdateProfilePicture',
+    'SEE YOUR HERO JOURNEY': 'Avatar',
+  };
   return (
     <View style={styles.mainContainer}>
       <Icon name="user-circle" size={70} />
@@ -20,7 +27,14 @@ const Profile = () => {
         'LOG OUT',
       ].map((value, index) => (
         <View key={index} style={{width: '60%', margin: 20}}>
-          <Button title={value} />
+          <Button
+            title={value}
+            onPress={() =>
+              value === 'LOG OUT'
+                ? setIsAuth(false)
+                : navigation.navigate(onClickComponentToShow[value])
+            }
+          />
         </View>
       ))}
     </View>

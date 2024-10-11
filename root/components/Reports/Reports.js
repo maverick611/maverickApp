@@ -1,9 +1,15 @@
 import React, {useState} from 'react';
 import {Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {BarChart} from 'react-native-chart-kit';
 import Header from '../Header/Header';
 import {ScrollView} from 'react-native-gesture-handler';
+const barData = [
+  {quarter: 1, earnings: 13000},
+  {quarter: 2, earnings: 16500},
+  {quarter: 3, earnings: 14250},
+  {quarter: 4, earnings: 19000},
+];
+
 const Reports = props => {
   const {navigation} = props;
   const responseDates = [
@@ -91,15 +97,15 @@ const Reports = props => {
                 <View style={{padding: 1}}>
                   <View style={{margin: 1}}>
                     <Button
-                      onPress={() => navigation.navigate('LongQuestionnaire')}
+                      onPress={() =>
+                        navigation.navigate('LongQuestionnaireResponses')
+                      }
                       title="View Response"
                     />
                   </View>
                   <View style={{margin: 1}}>
                     <Button
-                      onPress={() =>
-                        navigation.navigate('LongQuestionnaireResponses')
-                      }
+                      onPress={() => navigation.navigate('CertainReport')}
                       title="View Report"
                     />
                   </View>
@@ -140,32 +146,7 @@ const Reports = props => {
               </Picker>
             </View>
           </View>
-          <View>
-            <BarChart
-              data={data}
-              width={Dimensions.get('window').width - 16}
-              height={220}
-              withCustomBarColorFromData={true}
-              flatColor={true}
-              chartConfig={{
-                withCustomBarColorFromData: true,
-                flatColor: true,
-                backgroundColor: '#ffffff',
-                backgroundGradientFrom: '#ffffff',
-                backgroundGradientTo: '#ffffff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                style: {
-                  borderRadius: 16,
-                },
-              }}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-              }}
-            />
-          </View>
+          <View></View>
         </View>
       </View>
     </View>
