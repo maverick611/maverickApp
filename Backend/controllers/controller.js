@@ -2,18 +2,43 @@ const pool = require('../database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
 
+// const auth = async (req, res, next) => {
+//     const token = req.headers['authorization']?.split(' ')[1];
+//     if (!token) return res.status(401).json({ error: 'No token provided' });
+
+//     try {
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//         req.userId = decoded.id; 
+//         next();
+//     } catch (error) {
+//         return res.status(401).json({ error: 'Unauthorized' });
+//     }
+// };
+
+
+//authentication token verification function
 const auth = async (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     try {
+        const blacklistedToken = await pool.query(
+            'SELECT * FROM blacklisted_tokens WHERE token = $1',
+            [token]
+        );
+
+        if (blacklistedToken.rows.length > 0) {
+            return res.status(401).json({ error: 'Token is invalidated. Please log in again.' });
+        }
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.userId = decoded.id; 
+        req.userId = decoded.id;
         next();
     } catch (error) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 };
+
 
 
 
@@ -61,14 +86,14 @@ let newUserDetails = null;
 
 // Signup function
 const signup = async (req, res) => {
-    const { firstName, lastName, username, phoneNumber, password, confirmPassword, dateOfBirth, email } = req.body;
+    const { firstName, lastName, username, phoneNumber, password, dateOfBirth, email } = req.body;
 
 
 
     //comment ou if checked in frontend
-    if (password !== confirmPassword){
-        return res.status(400).json({error:'Passwords do not match'});
-    }
+    // if (password !== confirmPassword){
+    //     return res.status(400).json({error:'Passwords do not match'});
+    // }
     try{
         const existingEmail = pool.query('SELECT * from users where email = $1', [email]);
 
@@ -168,7 +193,6 @@ const confirm_signup = async (req, res) => {
 
 
 //questionnare function
-
 const questionnaire = async (req, res) => {
     try {
         const result = await pool.query(`
@@ -176,27 +200,58 @@ const questionnaire = async (req, res) => {
                 q.question_id,
                 q.question,
                 q.question_type,
-                w.disease_id,
-                jsonb_object_agg(o.options, w.weightage) AS options_weightage
+                d.disease_id,
+                d.disease_name,
+                o.options AS option_text  -- Select only the option text
             FROM 
                 questions q
             LEFT JOIN 
-                options o ON q.question_id = o.question_id
+                question_disease_relation r ON q.question_id = r.question_id
             LEFT JOIN 
-                questions_disease_weightage w ON q.question_id = w.question_id AND o.options = w.options
-            GROUP BY 
-                q.question_id, q.question, q.question_type, w.disease_id
+                chronic_diseases d ON r.disease_id = d.disease_id
+            LEFT JOIN 
+                options o ON q.question_id = o.question_id
+            ORDER BY 
+                q.question_id, d.disease_id
         `);
 
-        const questions = result.rows.map(row => ({
-            question_id: row.question_id,
-            question: row.question,
-            options: row.options_weightage,  
-            type: row.question_type,
-            disease_id: row.disease_id
-        }));
+        // Organize data to group diseases under each question
+        const questionsArray = [];
+        result.rows.forEach(row => {
+            // Check if the question already exists in the questionsArray
+            let questionEntry = questionsArray.find(q => q.question_id === row.question_id);
 
-        res.status(200).json(questions); 
+            if (!questionEntry) {
+                // If not, create a new entry for this question
+                questionEntry = {
+                    question_id: row.question_id,
+                    question: row.question,
+                    type: row.question_type,
+                    diseases: []  // Initialize an array to hold disease options
+                };
+                questionsArray.push(questionEntry);
+            }
+
+            // Check if the disease is already added to the question's diseases array
+            let diseaseEntry = questionEntry.diseases.find(d => d.disease_id === row.disease_id);
+            if (!diseaseEntry) {
+                // If the disease doesn't exist, create a new entry
+                diseaseEntry = {
+                    disease_id: row.disease_id,
+                    disease_name: row.disease_name,
+                };
+                questionEntry.diseases.push(diseaseEntry);
+            }
+
+            // Ensure options are added only once for the question
+            if (!questionEntry.options) {
+                questionEntry.options = result.rows
+                    .filter(r => r.question_id === row.question_id)  // Filter to get options for this question
+                    .map(r => r.option_text);  // Extract only the option texts
+            }
+        });
+
+        res.status(200).json(questionsArray); 
     } catch (error) {
         console.error('error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -209,23 +264,57 @@ const questionnaire = async (req, res) => {
 
 const questionnaire_responses = async (req, res) => {
     const { responses } = req.body;
-    const user_id = req.userId; 
+    const user_id = req.userId;
 
     try {
-        
         const submissionResult = await pool.query(
             'INSERT INTO submissions (user_id, timestamp) VALUES ($1, NOW()) RETURNING submission_id',
             [user_id]
         );
 
-        const submission_id = submissionResult.rows[0].submission_id; 
+        const submission_id = submissionResult.rows[0].submission_id;
 
-        const results = [];
-
+        const diseaseWeights = {};
+        const totalWeights = {}; // For total weights of all options
 
         for (const response of responses) {
             const { question_id, options_selected } = response;
 
+            const weightQuery = `
+                SELECT 
+                    w.disease_id, 
+                    d.disease_name,
+                    w.weightage,
+                    o.options AS option_text
+                FROM 
+                    questions_disease_weightage w
+                JOIN 
+                    chronic_diseases d ON w.disease_id = d.disease_id
+                JOIN 
+                    options o ON w.options_id = o.options_id
+                WHERE 
+                    w.question_id = $1 AND o.options = ANY($2::text[])
+            `;
+            const weightValues = await pool.query(weightQuery, [question_id, options_selected]);
+
+            weightValues.rows.forEach(row => {
+                const { disease_id, disease_name, weightage } = row;
+
+                if (!diseaseWeights[disease_id]) {
+                    diseaseWeights[disease_id] = {
+                        disease_name,
+                        selected_weights: 0
+                    };
+                }
+                diseaseWeights[disease_id].selected_weights += weightage;
+
+                if (!totalWeights[disease_id]) {
+                    totalWeights[disease_id] = {
+                        total_weight: 0
+                    };
+                }
+                totalWeights[disease_id].total_weight += weightage;
+            });
 
             for (const option of options_selected) {
                 await pool.query(
@@ -233,31 +322,21 @@ const questionnaire_responses = async (req, res) => {
                     [question_id, option, submission_id]
                 );
             }
-
-
-            const weightQuery = `
-                SELECT options, disease_id, weightage 
-                FROM questions_disease_weightage 
-                WHERE question_id = $1 AND options = ANY($2::text[])
-            `;
-            const weightValues = await pool.query(weightQuery, [question_id, options_selected]);
-
-            const optionWeights = {};
-
-            weightValues.rows.forEach(row => {
-                const { options, disease_id, weightage } = row;
-                optionWeights[options] = weightage; 
-                results.push({
-                    question_id,
-                    options_selected: optionWeights,
-                    disease_id,
-                    submission_id: submission_id
-                });
-            });
         }
 
+        const responseArray = Object.keys(diseaseWeights).map(disease_id => {
+            const { disease_name, selected_weights } = diseaseWeights[disease_id];
+            const total_weight = totalWeights[disease_id]?.total_weight || 1;
+            const risk_score = selected_weights / total_weight;
 
-        res.status(200).json(results);
+            return {
+                disease_id,
+                disease_name,
+                risk_score
+            };
+        });
+
+        res.status(200).json(responseArray);
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -267,7 +346,29 @@ const questionnaire_responses = async (req, res) => {
 
 
 
+// logout function
+const logout = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
 
-module.exports = {login, signup, confirm_signup, auth, questionnaire, questionnaire_responses};
+    if (!token) {
+        return res.status(400).json({ error: 'No token provided' });
+    }
+
+    try {
+        await pool.query(
+            'INSERT INTO blacklisted_tokens (token) VALUES ($1)',
+            [token]
+        );
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses};
 
 

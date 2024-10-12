@@ -13,7 +13,7 @@
 
 const express = require('express');
 const router = express.Router();
-const {login, signup, confirm_signup, auth, questionnaire, questionnaire_responses } = require('../controllers/controller');
+const {login, signup, confirm_signup, auth, logout, questionnaire, questionnaire_responses } = require('../controllers/controller');
 
 // router.post('/signup', signup);
 
@@ -22,6 +22,8 @@ router.post('/signup', signup)
 router.get('/questionnaire', auth, questionnaire); 
 router.get('/questionnaire_responses', auth, questionnaire_responses); 
 router.post('/confirm_signup', confirm_signup); 
+router.post('/logout', logout);
+
 
 
 
