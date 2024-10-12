@@ -200,63 +200,70 @@ const questionnaire = async (req, res) => {
                 q.question_id,
                 q.question,
                 q.question_type,
-                d.disease_id,
+                w.disease_id,
                 d.disease_name,
-                o.options AS option_text  -- Select only the option text
+                o.options_id AS option_id,
+                o.options AS option_text,
+                w.weightage AS option_weight
             FROM 
                 questions q
             LEFT JOIN 
-                question_disease_relation r ON q.question_id = r.question_id
-            LEFT JOIN 
-                chronic_diseases d ON r.disease_id = d.disease_id
-            LEFT JOIN 
                 options o ON q.question_id = o.question_id
+            LEFT JOIN 
+                questions_disease_weightage w ON o.options_id = w.options_id AND q.question_id = w.question_id
+            LEFT JOIN 
+                chronic_diseases d ON w.disease_id = d.disease_id
             ORDER BY 
-                q.question_id, d.disease_id
+                q.question_id, w.disease_id
         `);
 
-        // Organize data to group diseases under each question
+
         const questionsArray = [];
         result.rows.forEach(row => {
-            // Check if the question already exists in the questionsArray
             let questionEntry = questionsArray.find(q => q.question_id === row.question_id);
 
             if (!questionEntry) {
-                // If not, create a new entry for this question
+
                 questionEntry = {
                     question_id: row.question_id,
                     question: row.question,
+                    options: [],
                     type: row.question_type,
-                    diseases: []  // Initialize an array to hold disease options
+                    diseases: [] 
                 };
                 questionsArray.push(questionEntry);
             }
 
-            // Check if the disease is already added to the question's diseases array
-            let diseaseEntry = questionEntry.diseases.find(d => d.disease_id === row.disease_id);
-            if (!diseaseEntry) {
-                // If the disease doesn't exist, create a new entry
-                diseaseEntry = {
-                    disease_id: row.disease_id,
-                    disease_name: row.disease_name,
-                };
-                questionEntry.diseases.push(diseaseEntry);
-            }
+            questionEntry.options.push({
+                id: row.option_id,
+                weight: row.option_weight,
+                text: row.option_text
+            });
 
-            // Ensure options are added only once for the question
-            if (!questionEntry.options) {
-                questionEntry.options = result.rows
-                    .filter(r => r.question_id === row.question_id)  // Filter to get options for this question
-                    .map(r => r.option_text);  // Extract only the option texts
+            const diseaseEntry = {
+                disease_id: row.disease_id,
+                disease_name: row.disease_name
+            };
+
+            if (!questionEntry.diseases.some(d => d.disease_id === row.disease_id)) {
+                questionEntry.diseases.push(diseaseEntry);
             }
         });
 
-        res.status(200).json(questionsArray); 
+        questionsArray.forEach(question => {
+            question.diseases = question.diseases.map(d => ({
+                disease_id: d.disease_id,
+                disease_name: d.disease_name
+            }));
+        });
+
+        res.status(200).json(questionsArray);
     } catch (error) {
         console.error('error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 
 
@@ -275,7 +282,7 @@ const questionnaire_responses = async (req, res) => {
         const submission_id = submissionResult.rows[0].submission_id;
 
         const diseaseWeights = {};
-        const totalWeights = {}; // For total weights of all options
+        const totalWeights = {}; 
 
         for (const response of responses) {
             const { question_id, options_selected } = response;
@@ -371,13 +378,13 @@ const logout = async (req, res) => {
 
 const home = async (req, res) => {
     try {
-        // Query to retrieve the Maverick web link from the resources table
+
         const linkResult = await pool.query(`
             SELECT resource_link FROM resources WHERE resources_desc = 'Maverick Web Link' AND status = 'active'
         `);
         const maverick_web_link = linkResult.rows.length ? linkResult.rows[0].resource_link : '';
 
-        // Fetch display sections and associated resource links
+
         const contentResult = await pool.query(`
             SELECT hc.display_name, hc.title, r.resource_link
             FROM home_content hc
@@ -390,11 +397,10 @@ const home = async (req, res) => {
         contentResult.rows.forEach(row => {
             display_content[row.display_name] = {
                 title: row.title,
-                resource_link: row.resource_link  // Link to image or video
+                resource_link: row.resource_link  
             };
         });
 
-        // Respond with the formatted JSON object
         res.status(200).json({
             maverick_web_link,
             display_content
