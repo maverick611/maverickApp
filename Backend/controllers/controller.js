@@ -203,8 +203,7 @@ const questionnaire = async (req, res) => {
                 w.disease_id,
                 d.disease_name,
                 o.options_id AS option_id,
-                o.options AS option_text,
-                w.weightage AS option_weight
+                o.options AS option_text
             FROM 
                 questions q
             LEFT JOIN 
@@ -220,6 +219,7 @@ const questionnaire = async (req, res) => {
 
         const questionsArray = [];
         result.rows.forEach(row => {
+
             let questionEntry = questionsArray.find(q => q.question_id === row.question_id);
 
             if (!questionEntry) {
@@ -234,21 +234,24 @@ const questionnaire = async (req, res) => {
                 questionsArray.push(questionEntry);
             }
 
+
             questionEntry.options.push({
                 id: row.option_id,
-                weight: row.option_weight,
                 text: row.option_text
             });
+
 
             const diseaseEntry = {
                 disease_id: row.disease_id,
                 disease_name: row.disease_name
             };
 
+
             if (!questionEntry.diseases.some(d => d.disease_id === row.disease_id)) {
                 questionEntry.diseases.push(diseaseEntry);
             }
         });
+
 
         questionsArray.forEach(question => {
             question.diseases = question.diseases.map(d => ({
@@ -263,6 +266,7 @@ const questionnaire = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 
 
