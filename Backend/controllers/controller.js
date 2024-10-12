@@ -68,7 +68,7 @@ const login = async (req, res) => {
             return res.status(401).json({ error: 'Invalid password' }); 
         }
 
-        const token = jwt.sign({id: user.user_id}, process.env.JWT_SECRET,{expiresIn: "1h"});
+        const token = jwt.sign({id: user.user_id}, process.env.JWT_SECRET);
 
         res.status(200).json({ message: 'Login successful' ,
             userID : user.user_id,
@@ -163,7 +163,7 @@ const confirm_signup = async (req, res) => {
                 ]
             );
 
-            const token = jwt.sign({ id: newUser.rows[0].user_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+            const token = jwt.sign({ id: newUser.rows[0].user_id }, process.env.JWT_SECRET);
 
 
             newUserDetails = null;
@@ -367,8 +367,48 @@ const logout = async (req, res) => {
 };
 
 
+//home information function
+
+const home = async (req, res) => {
+    try {
+        // Query to retrieve the Maverick web link from the resources table
+        const linkResult = await pool.query(`
+            SELECT resource_link FROM resources WHERE resources_desc = 'Maverick Web Link' AND status = 'active'
+        `);
+        const maverick_web_link = linkResult.rows.length ? linkResult.rows[0].resource_link : '';
+
+        // Fetch display sections and associated resource links
+        const contentResult = await pool.query(`
+            SELECT hc.display_name, hc.title, r.resource_link
+            FROM home_content hc
+            LEFT JOIN resources r ON hc.resource_id = r.resource_id
+            WHERE hc.status = 'active'
+            ORDER BY hc.display_order
+        `);
+
+        const display_content = {};
+        contentResult.rows.forEach(row => {
+            display_content[row.display_name] = {
+                title: row.title,
+                resource_link: row.resource_link  // Link to image or video
+            };
+        });
+
+        // Respond with the formatted JSON object
+        res.status(200).json({
+            maverick_web_link,
+            display_content
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses};
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home};
 
 
