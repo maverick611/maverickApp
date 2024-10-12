@@ -716,6 +716,87 @@ app.put('/editOption', (req, res) => {
   });
 });
 
+app.get('/getdailyQuestions', (req, res) => {
+  const diseaseName = "daily";
+
+  // Step 1: Retrieve disease_id based on disease name
+  const disease_query = `
+      SELECT disease_id 
+      FROM chronic_diseases 
+      WHERE disease_name = $1`;
+
+  con.query(disease_query, [diseaseName], (err, diseaseResult) => {
+      if (err) {
+          console.error("Error fetching disease data:", err.stack);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+
+      if (diseaseResult.rows.length === 0) {
+          return res.status(404).json({ error: 'Disease not found' });
+      }
+
+      const disease_id = diseaseResult.rows[0].disease_id;
+
+      // Step 2: Fetch all questions and options related to the disease
+      const questions_query = `
+          SELECT 
+              q.question_id, 
+              q.question, 
+              q.question_type, 
+              q.status AS question_status,
+              o.options_id, 
+              o.options AS option_text,
+              o.status AS option_status, 
+              qdw.weightage
+          FROM questions q
+          JOIN question_disease_relation qdr ON q.question_id = qdr.question_id
+          JOIN options o ON q.question_id = o.question_id
+          JOIN questions_disease_weightage qdw ON o.options_id = qdw.options_id AND qdw.disease_id = qdr.disease_id
+          WHERE qdr.disease_id = $1
+          AND q.status = 'active'
+          ORDER BY q.question_id, o.options_id;
+      `;
+
+      con.query(questions_query, [disease_id], (err, result) => {
+          if (err) {
+              console.error('Error fetching questions and options:', err);
+              return res.status(500).json({ error: 'Internal server error' });
+          }
+
+          if (result.rows.length === 0) {
+              return res.status(404).json({ message: 'No questions found for the specified disease' });
+          }
+
+          // Step 3: Organize the results into a structured response
+          const questionsMap = {};
+
+          result.rows.forEach(row => {
+              // Check if the question is already in the map
+              if (!questionsMap[row.question_id]) {
+                  questionsMap[row.question_id] = {
+                      question_id: row.question_id,
+                      question: row.question,
+                      question_type: row.question_type,
+                      status: row.question_status,
+                      options: []
+                  };
+              }
+
+              // Add the option details to the question's options array
+              questionsMap[row.question_id].options.push({
+                  options_id: row.options_id,
+                  option_text: row.option_text,
+                  status: row.option_status,
+                  weightage: row.weightage
+              });
+          });
+
+          // Convert the map to an array for response
+          const questionsList = Object.values(questionsMap);
+          return res.status(200).json(questionsList);
+      });
+  });
+});
 
 
 
