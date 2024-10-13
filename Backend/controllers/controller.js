@@ -355,6 +355,10 @@ const questionnaire_responses = async (req, res) => {
 
 
 
+
+
+
+
 // logout function
 const logout = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -506,11 +510,21 @@ const get_submission = async (req, res) => {
 
     try {
         const responsesResult = await pool.query(`
-            SELECT r.question_id, q.question, r.answer
-            FROM responses r
-            JOIN questions q ON r.question_id = q.question_id
-            WHERE r.submission_id = $1
-            ORDER BY r.question_id
+            SELECT 
+                r.question_id, 
+                q.question, 
+                r.answer, 
+                o.options_id AS option_id
+            FROM 
+                responses r
+            JOIN 
+                questions q ON r.question_id = q.question_id
+            JOIN 
+                options o ON r.answer = o.options
+            WHERE 
+                r.submission_id = $1
+            ORDER BY 
+                r.question_id
         `, [submission_id]);
 
         if (responsesResult.rows.length === 0) {
@@ -520,20 +534,29 @@ const get_submission = async (req, res) => {
         const responseMap = {};
 
         responsesResult.rows.forEach(response => {
-            const { question_id, question, answer } = response;
+            const { question_id, question, answer, option_id } = response;
 
             if (!responseMap[question_id]) {
                 responseMap[question_id] = {
                     question_id,
                     question,
-                    answers: [] 
+                    answers: []
                 };
             }
 
-            responseMap[question_id].answers.push(answer);
+            responseMap[question_id].answers.push({
+                option_id,
+                answer
+            });
         });
 
-        const responseArray = Object.values(responseMap);
+        const responseArray = Object.values(responseMap).map(({ question_id, question, answers }) => ({
+            question_id,
+            question,
+            answers: answers.filter((ans, index, self) =>
+                index === self.findIndex(a => a.answer === ans.answer)
+            )
+        }));
 
         res.status(200).json(responseArray);
     } catch (error) {
@@ -541,7 +564,6 @@ const get_submission = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
 
 
 
