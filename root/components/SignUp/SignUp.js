@@ -53,7 +53,9 @@ const takePlaceHolderAndLogoReturnTextInput = (
         }}>
         {myIcon}
         <TextInput
-          value={String(stateValue.toLocaleDateString())}
+          value={
+            stateValue == '' ? '' : String(stateValue.toLocaleDateString())
+          }
           style={styles.input}
           placeholder="Date of Birth"
           onPress={event => {
@@ -66,7 +68,7 @@ const takePlaceHolderAndLogoReturnTextInput = (
           minimumDate={new Date('1900-01-01')}
           modal
           open={open}
-          date={stateValue}
+          date={stateValue == '' ? new Date() : stateValue}
           onConfirm={date => {
             setOpen(false);
             // setDate(date)
@@ -136,7 +138,7 @@ const SignUp = props => {
     phoneNumber: '',
     password: '',
     confirmPassword: '',
-    dateOfBirth: new Date(),
+    dateOfBirth: '',
     email: '',
   });
   const logoMapper = {

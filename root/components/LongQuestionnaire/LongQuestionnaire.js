@@ -66,7 +66,7 @@ const renderQuestion = (
 };
 
 const LongQuestionnaire = props => {
-  const {navigation} = props;
+  const {navigation, isItDailyQuestions} = props;
   const [currentPage, setCurrentPage] = useState(0);
   // while fetching questions , setCurrentAnswers
   const [currentAnswers, setCurrentAnswers] = useState({
@@ -107,6 +107,17 @@ const LongQuestionnaire = props => {
       disease_id: null,
     },
     {
+      question_id: 7,
+      question: 'Do you have a family history of cardiovascular disease?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+        {id: 3, text: 'sometimes', value: 2.5},
+      ],
+      type: 'single_choice',
+      disease_id: null,
+    },
+    {
       question_id: 4,
       question: 'Do you experience shortness of breath after minimal exertion?',
       options: [
@@ -123,10 +134,11 @@ const LongQuestionnaire = props => {
       ],
       question_id: 100,
       question: 'Do you sit for more than 8 hours a day?',
-      options: {
-        no: 3,
-        yes: 8,
-      },
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+        ,
+      ],
       type: 'single_choice',
       disease_id: 1,
     },
@@ -313,16 +325,108 @@ const LongQuestionnaire = props => {
       disease_id: 10,
     },
   ];
-
+  const dailyQuestions = [
+    {
+      question_id: 2,
+      question: 'Have you been diagnosed with high blood pressure?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+      ],
+      type: 'single_choice',
+      disease_id: null,
+    },
+    {
+      question_id: 3,
+      question:
+        'Do you engage in less than 30 minutes of physical activity daily?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+        {id: 3, text: 'sometimes', value: 2.5},
+      ],
+      type: 'single_choice',
+      disease_id: 1,
+    },
+    {
+      question_id: 400,
+      question:
+        'Do you engage in less than 30 minutes of physical activity daily?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+      ],
+      type: 'single_choice',
+      disease_id: 3,
+    },
+    {
+      question_id: 6,
+      question: 'Do you often experience swelling in your legs or ankles?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+      ],
+      type: 'single_choice',
+      disease_id: null,
+    },
+    {
+      question_id: 111,
+      question: 'Do you sit for more than 8 hours a day?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+      ],
+      type: 'single_choice',
+      disease_id: 1,
+    },
+    {
+      question_id: 11,
+      question: 'Do you sit for more than 8 hours a day?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+      ],
+      type: 'single_choice',
+      disease_id: 10,
+    },
+    {
+      question_id: 15,
+      question: 'Have you been diagnosed with high cholesterol levels?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+      ],
+      type: 'single_choice',
+      disease_id: null,
+    },
+    {
+      question_id: 12,
+      question: 'Have you been diagnosed with high blood pressure?',
+      options: [
+        {id: 1, text: 'no', value: 5},
+        {id: 2, text: 'yes', value: 0},
+        {id: 3, text: 'sometimes', value: 2.5},
+      ],
+      type: 'single_choice',
+      disease_id: null,
+    },
+  ];
+  let whichQuestionsToUse = isItDailyQuestions ? dailyQuestions : questions;
   return (
     <ScrollView style={{backgroundColor: 'rgb(226	244	254	)'}}>
       <View style={styles.container}>
+        {console.log(
+          'currentPage',
+          whichQuestionsToUse.filter(
+            (q, index) =>
+              index >= currentPage * 10 && index <= 10 * (currentPage + 1),
+          ),
+        )}
         <View>
-          {questions
+          {whichQuestionsToUse
             .filter(
-              q =>
-                q.question_id > currentPage * 10 &&
-                q.question_id <= 10 * (currentPage + 1),
+              (q, index) =>
+                index >= currentPage * 10 && index < 10 * (currentPage + 1),
             )
             .map((question, index) => (
               <View key={index}>
@@ -345,22 +449,34 @@ const LongQuestionnaire = props => {
             />
           </View>
           <Text>
-            {currentPage + 1} / {questions.length / 10 + 1}
+            {currentPage + 1} / {Math.ceil(whichQuestionsToUse.length / 10)}
           </Text>
           <View style={styles.navButton}>
+            {console.log(
+              'Math.ceil(whichQuestionsToUse.length / 10)',
+              Math.ceil(whichQuestionsToUse.length / 10),
+            )}
             <Button
               title="Next"
               onPress={() =>
                 setCurrentPage(page =>
-                  Math.min(questions.length / 10, page + 1),
+                  Math.min(
+                    Math.ceil(whichQuestionsToUse.length / 10) - 1,
+                    page + 1,
+                  ),
                 )
               }
             />
           </View>
+          {console.log('pageeee', currentPage)}
         </View>
         <View style={styles.saveAsDraftContainer}>
           <Button title="save draft" />
-          {currentPage == questions.length / 10 && <Button title="Submit" />}
+          {currentPage == Math.ceil(whichQuestionsToUse.length / 10) - 1 && (
+            <View style={{marginTop: 5}}>
+              <Button title="Submit" />
+            </View>
+          )}
         </View>
       </View>
     </ScrollView>

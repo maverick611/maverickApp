@@ -19,6 +19,7 @@ import UpdateProfilePicture from './components/UpdateProfilePicture/UpdateProfil
 import Avatar from './components/Avatar/Avatar.js';
 import Profile from './components/Profile/Profile.js';
 import LongQuestionnaireResponses from './components/LongQuestionnaireResponses/LongQuestionnaireResponses.js';
+import UpdatePersonalInfo from './components/UpdatePersonalInfo/UpdatePersonalInfo.js';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -79,11 +80,14 @@ const App = () => {
           component={DailyQuestionsResponse}
           options={{title: 'Your Response'}}
         />
-        <Stack.Screen
+        <Stack.Screen name="dq" options={{title: "Today's Questionnaire"}}>
+          {props => <LongQuestionnaire {...props} isItDailyQuestions={true} />}
+        </Stack.Screen>
+        {/* <Stack.Screen
           name="dq"
           component={DailyQuestions}
           options={{title: "Today's Questionnaire"}}
-        />
+        /> */}
         <Stack.Screen
           name="LongQuestionnaire"
           component={LongQuestionnaire}
@@ -98,6 +102,11 @@ const App = () => {
           name="CertainReport"
           component={CertainReport}
           options={{title: 'Your Report'}}
+        />
+        <Stack.Screen
+          name="UpdatePersonalInfo"
+          component={UpdatePersonalInfo}
+          options={{title: ''}}
         />
       </Stack.Navigator>
     </NavigationContainer>

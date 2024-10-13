@@ -12,7 +12,7 @@ const Profile = props => {
   const {setIsAuth} = props;
   const {navigation} = props;
   const onClickComponentToShow = {
-    'PERSONAL INFORMATION': 'UpdateProfilePicture',
+    'PERSONAL INFORMATION': 'UpdatePersonalInfo',
     'UPDATE PROFILE PICTURE': 'UpdateProfilePicture',
     'SEE YOUR HERO JOURNEY': 'Avatar',
   };

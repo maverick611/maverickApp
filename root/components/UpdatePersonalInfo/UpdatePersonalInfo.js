@@ -1,0 +1,55 @@
+import React from 'react';
+import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
+
+const UpdatePersonalInfo = () => {
+  return (
+    <View style={styles.mainContainer}>
+      <View style={styles.dataContainer}>
+        <Text>First Name</Text>
+        <TextInput style={styles.textInput} />
+        <Text>Last Name</Text>
+        <TextInput style={styles.textInput} />
+        <Text>Username</Text>
+        <TextInput style={styles.textInput} />
+        <Text>Password</Text>
+        <TextInput style={styles.textInput} secureTextEntry={true} />
+        <Text>Email</Text>
+        <TextInput style={styles.textInput} />
+        <Text>Phone Number</Text>
+        <TextInput style={styles.textInput} />
+        <Text>Date of Birth</Text>
+      </View>
+      <View style={styles.button}>
+        <Button title="Save Changes" />
+      </View>
+      <View style={styles.button}>
+        <Button title="Cancel" />
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  button: {
+    margin: 5,
+  },
+  mainContainer: {
+    padding: 15,
+    backgroundColor: 'rgb(226,244,254)',
+    height: '100%',
+  },
+  dataContainer: {
+    padding: 20,
+    backgroundColor: 'rgb(235,247,217)',
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 10,
+  },
+  textInput: {
+    marginBottom: 8,
+    backgroundColor: 'white',
+    borderRadius: 5,
+  },
+});
+
+export default UpdatePersonalInfo;
