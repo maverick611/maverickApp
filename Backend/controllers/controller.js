@@ -234,24 +234,23 @@ const questionnaire = async (req, res) => {
                 questionsArray.push(questionEntry);
             }
 
-
-            questionEntry.options.push({
-                id: row.option_id,
-                text: row.option_text
-            });
-
+            const optionExists = questionEntry.options.some(option => option.text === row.option_text);
+            if (!optionExists) {
+                questionEntry.options.push({
+                    id: row.option_id,
+                    text: row.option_text
+                });
+            }
 
             const diseaseEntry = {
                 disease_id: row.disease_id,
                 disease_name: row.disease_name
             };
 
-
             if (!questionEntry.diseases.some(d => d.disease_id === row.disease_id)) {
                 questionEntry.diseases.push(diseaseEntry);
             }
         });
-
 
         questionsArray.forEach(question => {
             question.diseases = question.diseases.map(d => ({
@@ -266,7 +265,6 @@ const questionnaire = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
 
 
 
@@ -419,6 +417,90 @@ const home = async (req, res) => {
 
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home};
+//reports functionm
+
+const reports = async (req, res) => {
+    const user_id = req.userId; 
+
+    try {
+        const submissionsResult = await pool.query(`
+            SELECT submission_id, "timestamp"
+            FROM submissions
+            WHERE user_id = $1
+            ORDER BY "timestamp" DESC
+            LIMIT 10
+        `, [user_id]);
+
+        const responseArray = await Promise.all(submissionsResult.rows.map(async (submission) => {
+            const responsesResult = await pool.query(`
+                SELECT question_id, answer
+                FROM responses
+                WHERE submission_id = $1
+            `, [submission.submission_id]);
+
+            const diseaseWeights = {};
+            const totalWeights = {};
+
+            for (const response of responsesResult.rows) {
+                const { question_id, answer } = response;
+
+                const weightQuery = `
+                    SELECT w.disease_id, d.disease_name, w.weightage
+                    FROM questions_disease_weightage w
+                    JOIN chronic_diseases d ON w.disease_id = d.disease_id
+                    JOIN options o ON w.options_id = o.options_id
+                    WHERE w.question_id = $1 AND o.options = $2
+                `;
+                
+                const weightValues = await pool.query(weightQuery, [question_id, answer]);
+
+                weightValues.rows.forEach(row => {
+                    const { disease_id, disease_name, weightage } = row;
+
+                    if (!diseaseWeights[disease_id]) {
+                        diseaseWeights[disease_id] = {
+                            disease_name,
+                            selected_weights: 0,
+                            total_weight: 0
+                        };
+                    }
+
+                    diseaseWeights[disease_id].selected_weights += weightage;
+
+                    diseaseWeights[disease_id].total_weight += weightage; 
+                });
+            }
+
+            const riskAssessments = Object.keys(diseaseWeights).map(disease_id => {
+                const { disease_name, selected_weights, total_weight } = diseaseWeights[disease_id];
+                const risk_score = total_weight ? selected_weights / total_weight : 0; 
+
+                return {
+                    disease_id,
+                    disease_name,
+                    risk_score
+                };
+            });
+
+            return {
+                submission_id: submission.submission_id,
+                timestamp: submission.timestamp,
+                risk_assessments: riskAssessments 
+            };
+        }));
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports};
 
 
