@@ -3,6 +3,7 @@ import {Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Header from '../Header/Header';
 import {ScrollView} from 'react-native-gesture-handler';
+import {BarChart, Grid} from 'react-native-svg-charts';
 const barData = [
   {quarter: 1, earnings: 13000},
   {quarter: 2, earnings: 16500},
@@ -33,35 +34,8 @@ const Reports = props => {
   ];
   const [selectedValue, setSelectedValue] = useState('osteoporosis');
 
-  const data = {
-    labels: [
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-      '09/27',
-    ],
-    datasets: [
-      {
-        data: [20, 45, 28, 80, 99, 43, 22, 19],
-        colors: [
-          (opacity = 1) => `#BE95FF`,
-          (opacity = 1) => `#BE95FF`,
-          (opacity = 1) => `#78A9FF`,
-          (opacity = 1) => `#00FF00`,
-          (opacity = 1) => `#AA1111`,
-          (opacity = 1) => `#AA1111`,
-          (opacity = 1) => `#00AA00`,
-          (opacity = 1) => `#00BB00`,
-        ],
-      },
-    ],
-  };
+  const fill = 'rgb(134, 65, 244)';
+  const data = [50, 10, 40, 95, null, 85, 0, 35, 53, 24, 50];
   return (
     <View>
       <Header />
@@ -149,6 +123,13 @@ const Reports = props => {
           <View></View>
         </View>
       </View>
+      <BarChart
+        style={{height: 200}}
+        data={data}
+        svg={{fill}}
+        contentInset={{top: 30, bottom: 30}}>
+        <Grid />
+      </BarChart>
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Image, Text, View, StyleSheet, Button, Linking} from 'react-native';
 import Header from '../Header/Header';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -15,8 +15,19 @@ const handlePress = async () => {
 };
 
 const Home = props => {
+  const [homeDetails, setHomeDetails] = useState({});
   const {navigation} = props;
   const aboutUsImage = require('../../assets/homeAboutUsImage.jpg');
+
+  useEffect(() => {
+    const fetchHomeDetails = async () => {
+      const response = await fetch('http://10.0.2.2:3000/home');
+      const data = await response.json();
+      setHomeDetails(data);
+    };
+    fetchHomeDetails();
+  }, []);
+
   return (
     <ScrollView style={{flex: 1, backgroundColor: 'rgb(226	244	254	)'}}>
       <Header />
