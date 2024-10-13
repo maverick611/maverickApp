@@ -1,29 +1,32 @@
 .profile-container {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .profile-content {
   display: flex;
+  width: 100%;
 }
 
 .profile-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(247, 247, 247);
+  overflow-y: scroll;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profile-info {
-  margin: 2rem;
-  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
   font-size: 40px;
-  text-align: left;
-  display: flex;
 }
-
-.text-left {
-  margin-left: 1rem;
-}
-
 
 .info-text {
   margin-top: 0.5rem;
@@ -31,64 +34,81 @@
   color: burlywood;
 }
 
+.center-user {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.profile-btn,
+.btn-cancel,
+.btn-submit {
+  background-color: #367c6f;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 15rem;
+  margin: 5px;
+}
+
+.btn-cancel {
+  background-color: #ccc;
+}
+
+.profile-btn:hover,
+.btn-cancel:hover,
+.btn-submit:hover {
+  background-color: #2b6558;
+}
+
+/* Form styling */
 .profile-form {
-  margin: 2rem;
+  text-align: center;
+  margin: 1rem;
 }
 
 .profile-form-password {
-  margin-top: 0rem;
-  margin-right: 2rem;
-  margin-left: 2rem;
-  margin-bottom: 2rem;
+  text-align: center;
+  margin: 1rem;
 }
 
-.profile-form-password h3 {
-  text-align: left;
-  margin-bottom: 2rem;
+.form-row {
+  display: flex;
+  justify-content: space-between;
 }
 
-.profile-form h3 {
-  text-align: left;
-  margin-bottom: 2rem;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  width: 48%;
 }
 
-.profile-btn {
-  margin-left: 6rem;
-  margin-right: 4rem;
-  margin-bottom: 4rem;
-  margin-top: 0.6rem;
-  width: 200px;
-  height: 30px;
+.form-group label {
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.form-group input {
+  padding: 10px;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+/* Styling for the password and personal info forms */
+.profile-form-password h2,
+.profile-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .message {
   color: red;
-}
-
-.btn-cancel {
-  margin-top: 20px;
-  padding: 12px;
-  background-color: #ccc;
-  color: white;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 80%;
-}
-
-.btn-submit {
-  margin-top: 20px;
-  padding: 12px;
-  background-color: #007c72;
-  color: white;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 80%;
-}
-
-.signup-btn:hover {
-  background-color: #001c4f;
+  text-align: center;
+  margin-bottom: 10px;
 }

@@ -23,12 +23,14 @@ const DialogComponent = (props) => {
     return (
         <Dialog
             open={open}
+            fullWidth={true}
             onClose={handleNo}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description">
             <DialogTitle id="alert-dialog-title">
                 {props.alertMessage}
             </DialogTitle>
+            {props.children}
             {props.data === 'addOptions' ? <DialogContent>
                 <span style={{ display: 'flex' }}>
                     <div className='option-add'>Answer:</div>
@@ -62,9 +64,9 @@ const DialogComponent = (props) => {
             </DialogContent> : null
             }
             <DialogActions>
-                <Button onClick={handleNo}>No</Button>
+                <Button onClick={handleNo}>{props.no}</Button>
                 <Button onClick={handleYes} autoFocus>
-                    Yes
+                    {props.yes}
                 </Button>
             </DialogActions>
         </Dialog >

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../resources/images/logo.png';
 import NavBar from '../Utils/NavBar';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import './Login.css';
 
 const Login = (props, context) => {
@@ -9,17 +10,20 @@ const Login = (props, context) => {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setErrorMessage('');
     const loginData = {
       username: username,
       password: password,
     };
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('http://localhost:3030/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,9 +39,12 @@ const Login = (props, context) => {
       }
     } catch (error) {
       console.error('Error during login:', error);
-      navigate('/profile', { state: { userInfo: { username: 'Dr. David' } } });
       setErrorMessage('An error occurred. Please try again.');
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
   return (
@@ -56,12 +63,20 @@ const Login = (props, context) => {
             onChange={(e) => setUsername(e.target.value)}
           />
           <label>Password</label>
-          <input
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="passwordContainer">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <span
+              onClick={togglePasswordVisibility}
+              className="togglePasswordIcon"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          </div>
           <button type="submit">Login</button>
         </form>
       </div>

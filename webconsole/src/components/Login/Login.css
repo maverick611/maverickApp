@@ -25,6 +25,7 @@
 
 .login button {
   margin-top: 15px;
+  padding: 10px 15px;
 }
 
 .login p {
@@ -37,4 +38,23 @@
   height: 80px;
   width: 320px;
   margin-top: 40px;
+}
+
+.passwordContainer {
+  position: relative;
+}
+
+.passwordContainer input {
+  width: 100%;
+  /* Adjust as needed */
+  padding-right: 30px;
+  /* Space for the icon */
+}
+
+.togglePasswordIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
 }

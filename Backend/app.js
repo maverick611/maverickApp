@@ -10,21 +10,23 @@
 //   console.log(`Server is running at http://localhost:${port}`);
 // });
 
-const {Client}=require('pg')
-const express=require('express')
+const { Client } = require('pg')
+const express = require('express')
 const bcrypt = require('bcryptjs');
+const cors = require('cors');
 
-const app=express()
+const app = express()
+app.use(cors());
 app.use(express.json())
 
-const con=new Client ({
-    host:"localhost",
-    user:"postgres",
-    port:5432,
-    password:"postgres",
-    database:"Maverick611"
+const con = new Client({
+    host: "localhost",
+    user: "postgres",
+    port: 5433,
+    password: "postgres",
+    database: "maverick"
 })
-con.connect().then(()=>console.log("connected"))
+con.connect().then(() => console.log("connected"))
 
 app.post('/addResource', (req, res) => {
     const { disease_name, resources_desc, resource_link, resources_title } = req.body;
@@ -36,7 +38,7 @@ app.post('/addResource', (req, res) => {
 
     // Check if disease exists in chronic_diseases table
     const disease_query = `SELECT disease_id FROM chronic_diseases WHERE disease_name = $1`;
-    
+
     con.query(disease_query, [disease_name], (err, result) => {
         if (err) {
             console.error("Error fetching disease:", err.stack);
@@ -82,10 +84,10 @@ app.post('/addResource', (req, res) => {
                 }
 
                 // Success - return the resource ID and the newly created disease_resource_id
-                return res.status(201).json({ 
-                    message: "Resource added and linked to disease successfully", 
+                return res.status(201).json({
+                    message: "Resource added and linked to disease successfully",
                     resource_id: resource_id,
-                    disease_resource_id: disease_resource_id 
+                    disease_resource_id: disease_resource_id
                 });
             });
         });
@@ -96,14 +98,13 @@ app.post('/addResource', (req, res) => {
 
 
 
-app.get('/fetchResources',(req,res)=>{
-    const fetch_query="select * from resources;"
-    con.query(fetch_query,(err,result)=>{
-        if(err)
-        {
+app.get('/fetchResources', (req, res) => {
+    const fetch_query = "select * from resources;"
+    con.query(fetch_query, (err, result) => {
+        if (err) {
             res.send(err)
         }
-        else{
+        else {
             res.send(result.rows)
         }
     })
@@ -157,7 +158,7 @@ app.post('/adminpersonaldetails', (req, res) => {
 
     // First, check if the admin exists based on the username
     const check_query = 'SELECT * FROM admins WHERE username = $1';
-    
+
     con.query(check_query, [username], (err, result) => {
         if (err) {
             console.error("Database error:", err);
@@ -281,11 +282,11 @@ app.post('/addAdmin', (req, res) => {
                         VALUES ($1, $2, $3, $4, $5, NULL, $6, 'active') RETURNING admin_id`;
 
                     const admin_values = [
-                        user.username, 
-                        user.first_name, 
-                        user.last_name, 
-                        user.email, 
-                        user.phone, 
+                        user.username,
+                        user.first_name,
+                        user.last_name,
+                        user.email,
+                        user.phone,
                         user.password
                     ];
 
@@ -591,134 +592,134 @@ app.put('/deactivateOption/:options_id', (req, res) => {
 });
 
 app.post('/addOption', (req, res) => {
-  const { question_id, disease_id, option_text, weightage } = req.body;
+    const { question_id, disease_id, option_text, weightage } = req.body;
 
-  // Validate input
-  if (!question_id || !disease_id || !option_text || weightage === undefined) {
-      return res.status(400).json({ error: 'Please provide question_id, disease_id, option_text, and weightage' });
-  }
+    // Validate input
+    if (!question_id || !disease_id || !option_text || weightage === undefined) {
+        return res.status(400).json({ error: 'Please provide question_id, disease_id, option_text, and weightage' });
+    }
 
-  // Check if the question is active
-  const check_question_query = `
+    // Check if the question is active
+    const check_question_query = `
       SELECT q.status, qdr.question_disease_relation_id 
       FROM questions q 
       JOIN question_disease_relation qdr ON q.question_id = qdr.question_id
       WHERE q.question_id = $1 AND qdr.disease_id = $2`;
 
-  con.query(check_question_query, [question_id, disease_id], (err, result) => {
-      if (err) {
-          console.error("Error checking question status and relationship:", err.stack);
-          return res.status(500).json({ error: 'Internal server error while checking question status and relationship' });
-      }
+    con.query(check_question_query, [question_id, disease_id], (err, result) => {
+        if (err) {
+            console.error("Error checking question status and relationship:", err.stack);
+            return res.status(500).json({ error: 'Internal server error while checking question status and relationship' });
+        }
 
-      // Check if the question is active and has a relationship with the specified disease
-      if (result.rows.length === 0 || result.rows[0].status !== 'active') {
-          return res.status(400).json({ 
-              error: 'The question is either inactive or does not have a relationship with the specified disease.' 
-          });
-      }
+        // Check if the question is active and has a relationship with the specified disease
+        if (result.rows.length === 0 || result.rows[0].status !== 'active') {
+            return res.status(400).json({
+                error: 'The question is either inactive or does not have a relationship with the specified disease.'
+            });
+        }
 
-      // If the question is active and has a relationship with the disease, proceed to add the option
-      const options_id = Math.floor(Math.random() * 900000) + 100000; // Random integer between 100000 and 999999
-      const questions_disease_weightage_id = Math.floor(Math.random() * 900000) + 100000; // Random integer between 100000 and 999999
+        // If the question is active and has a relationship with the disease, proceed to add the option
+        const options_id = Math.floor(Math.random() * 900000) + 100000; // Random integer between 100000 and 999999
+        const questions_disease_weightage_id = Math.floor(Math.random() * 900000) + 100000; // Random integer between 100000 and 999999
 
-      // Insert the option into the options table
-      const insert_option_query = `
+        // Insert the option into the options table
+        const insert_option_query = `
           INSERT INTO options (options_id, options, question_id, status)
           VALUES ($1, $2, $3, 'active')`;
 
-      con.query(insert_option_query, [options_id, option_text, question_id], (err) => {
-          if (err) {
-              console.error("Error inserting option:", err.stack);
-              return res.status(500).json({ error: 'Internal server error while adding option' });
-          }
+        con.query(insert_option_query, [options_id, option_text, question_id], (err) => {
+            if (err) {
+                console.error("Error inserting option:", err.stack);
+                return res.status(500).json({ error: 'Internal server error while adding option' });
+            }
 
-          // Insert the weightage into the questions_disease_weightage table
-          const insert_weightage_query = `
+            // Insert the weightage into the questions_disease_weightage table
+            const insert_weightage_query = `
               INSERT INTO questions_disease_weightage (questions_disease_weightage_id, question_id, disease_id, options_id, weightage)
               VALUES ($1, $2, $3, $4, $5)`;
 
-          con.query(insert_weightage_query, [questions_disease_weightage_id, question_id, disease_id, options_id, weightage], (err) => {
-              if (err) {
-                  console.error("Error inserting weightage:", err.stack);
-                  return res.status(500).json({ error: 'Internal server error while adding weightage' });
-              }
+            con.query(insert_weightage_query, [questions_disease_weightage_id, question_id, disease_id, options_id, weightage], (err) => {
+                if (err) {
+                    console.error("Error inserting weightage:", err.stack);
+                    return res.status(500).json({ error: 'Internal server error while adding weightage' });
+                }
 
-              return res.status(201).json({ message: 'Option and weightage added successfully', options_id });
-          });
-      });
-  });
+                return res.status(201).json({ message: 'Option and weightage added successfully', options_id });
+            });
+        });
+    });
 });
 
 app.put('/editOption', (req, res) => {
-  const { question_id, disease_id, options_id, option_text, weightage } = req.body;
+    const { question_id, disease_id, options_id, option_text, weightage } = req.body;
 
-  // Validate input
-  if (!question_id || !disease_id || !options_id || (!option_text && weightage === undefined)) {
-      return res.status(400).json({ error: 'Please provide question_id, disease_id, options_id, and at least one of option_text or weightage' });
-  }
+    // Validate input
+    if (!question_id || !disease_id || !options_id || (!option_text && weightage === undefined)) {
+        return res.status(400).json({ error: 'Please provide question_id, disease_id, options_id, and at least one of option_text or weightage' });
+    }
 
-  // Check if the question is active and has a relationship with the specified disease
-  const check_question_query = `
+    // Check if the question is active and has a relationship with the specified disease
+    const check_question_query = `
       SELECT q.status, qdr.question_disease_relation_id 
       FROM questions q 
       JOIN question_disease_relation qdr ON q.question_id = qdr.question_id
       WHERE q.question_id = $1 AND qdr.disease_id = $2`;
 
-  con.query(check_question_query, [question_id, disease_id], (err, result) => {
-      if (err) {
-          console.error("Error checking question status and relationship:", err.stack);
-          return res.status(500).json({ error: 'Internal server error while checking question status and relationship' });
-      }
+    con.query(check_question_query, [question_id, disease_id], (err, result) => {
+        if (err) {
+            console.error("Error checking question status and relationship:", err.stack);
+            return res.status(500).json({ error: 'Internal server error while checking question status and relationship' });
+        }
 
-      // Check if the question is active and has a relationship with the specified disease
-      if (result.rows.length === 0 || result.rows[0].status !== 'active') {
-          return res.status(400).json({ 
-              error: 'The question is either inactive or does not have a relationship with the specified disease.' 
-          });
-      }
+        // Check if the question is active and has a relationship with the specified disease
+        if (result.rows.length === 0 || result.rows[0].status !== 'active') {
+            return res.status(400).json({
+                error: 'The question is either inactive or does not have a relationship with the specified disease.'
+            });
+        }
 
-      // Proceed with updating the option or weightage
-      const queries = [];
-      const queryValues = [];
+        // Proceed with updating the option or weightage
+        const queries = [];
+        const queryValues = [];
 
-      // Update the option text if provided
-      if (option_text) {
-          const update_option_query = `
+        // Update the option text if provided
+        if (option_text) {
+            const update_option_query = `
               UPDATE options 
               SET options = $1
               WHERE options_id = $2 AND question_id = $3`;
-          queries.push(update_option_query);
-          queryValues.push([option_text, options_id, question_id]);
-      }
+            queries.push(update_option_query);
+            queryValues.push([option_text, options_id, question_id]);
+        }
 
-      // Update the weightage if provided
-      if (weightage !== undefined) {
-          const update_weightage_query = `
+        // Update the weightage if provided
+        if (weightage !== undefined) {
+            const update_weightage_query = `
               UPDATE questions_disease_weightage 
               SET weightage = $1 
               WHERE options_id = $2 AND question_id = $3 AND disease_id = $4`;
-          queries.push(update_weightage_query);
-          queryValues.push([weightage, options_id, question_id, disease_id]);
-      }
+            queries.push(update_weightage_query);
+            queryValues.push([weightage, options_id, question_id, disease_id]);
+        }
 
-      // Execute the update queries
-      Promise.all(queries.map((query, index) => {
-          return con.query(query, queryValues[index]);
-      }))
-      .then(() => {
-          res.status(200).json({ message: 'Option or weightage updated successfully' });
-      })
-      .catch((error) => {
-          console.error("Error updating option or weightage:", error.stack);
-          res.status(500).json({ error: 'Internal server error while updating option or weightage' });
-      });
-  });
+        // Execute the update queries
+        Promise.all(queries.map((query, index) => {
+            return con.query(query, queryValues[index]);
+        }))
+            .then(() => {
+                res.status(200).json({ message: 'Option or weightage updated successfully' });
+            })
+            .catch((error) => {
+                console.error("Error updating option or weightage:", error.stack);
+                res.status(500).json({ error: 'Internal server error while updating option or weightage' });
+            });
+    });
 });
 
 
 
 
-app.listen(3000,()=>{
+app.listen(3030, () => {
     console.log("server is running")
 })

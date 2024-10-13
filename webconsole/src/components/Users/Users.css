@@ -26,3 +26,10 @@
   margin-top: 1rem;
   font-size: x-large;
 }
+
+.menu-btn {
+  margin-right: 1rem;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 10px;
+}

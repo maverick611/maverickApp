@@ -1,22 +1,65 @@
-import React, { useState } from 'react';
-import { FaSearch } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
 import './Table.css';
 import SearchBar from '../Utils/SearchBar';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { Paper } from '@mui/material';
 
 const UserTable = () => {
-  const [existingUsers, setExistingUsers] = useState([
-    { id: 1, user: "Dr. David", updatedBy: "System", role: "Super User" },
-    { id: 2, user: "Chris J", updatedBy: "Dr. David", role: "Resources" },
-    { id: 3, user: "Omar", updatedBy: "Dr. David", role: "Resources" },
-    { id: 4, user: "Dr. David", updatedBy: "System", role: "Super User" },
-    { id: 5, user: "Chris J", updatedBy: "Dr. David", role: "Resources" },
-    { id: 6, user: "Omar", updatedBy: "Dr. David", role: "Resources" },
-    { id: 7, user: "Dr. David", updatedBy: "System", role: "Super User" },
-    { id: 8, user: "Chris J", updatedBy: "Dr. David", role: "Resources" },
-    { id: 9, user: "Omar", updatedBy: "Dr. David", role: "Resources" },
-  ]);
+
+  const columns: GridColDef[] = [
+    {
+      field: 'user',
+      headerName: 'User',
+      sortable: false,
+      flex: 1,
+      valueGetter: (value, row) => `${row.first_name || ''} ${row.last_name || ''}`,
+    },
+    { field: 'email', headerName: 'Email', flex: 0.7 },
+    { field: 'updated_by', headerName: 'Updated By', flex: 0.5 },
+    {
+      field: 'action',
+      headerName: 'Action',
+      flex: 0.3,
+      renderCell: (user) => {
+        console.log(user)
+        return <button className="revoke-btn" onClick={() => revokeUser(user.admin_id)}>Revoke</button>;
+      }
+    },
+  ];
+
+  const paginationModel = { page: 0, pageSize: 10 };
+  const [existingUsers, setExistingUsers] = useState([]);
   const [newUser, setNewUser] = useState("");
-  const BarStyle = { width: "20rem", background: "white", border: "1px solid", margin: "0.5rem", padding: "0.5rem" };
+
+  const rows = existingUsers.map(user => {
+    user.id = user.admin_id;
+    return user;
+  });
+
+  useEffect(() => {
+    getAllAdmins();
+  }, []);
+
+  const getAllAdmins = async () => {
+    try {
+      const response = await fetch('http://localhost:3030/getAdmins', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const admins = await response.json();
+        setExistingUsers(admins);
+      } else {
+        alert("Failed to get all admin user");
+      }
+    } catch (error) {
+      console.error("Error fetching admin users :", error);
+      alert("Error fetching admin users");
+    }
+  };
 
   const revokeUser = async (userId) => {
     try {
@@ -29,7 +72,7 @@ const UserTable = () => {
       });
 
       if (response.ok) {
-        setExistingUsers(existingUsers.filter(user => user.id !== userId)); // Remove the revoked user from state
+        setExistingUsers(existingUsers.filter(user => user.admin_id !== userId)); // Remove the revoked user from state
         alert("User revoked successfully");
       } else {
         alert("Failed to revoke user");
@@ -67,43 +110,23 @@ const UserTable = () => {
   return (
     <div className="user-table">
       <div className='user-section'>
-        <h3>Existing Users</h3>
-        <SearchBar />
+        <h3>Existing Admin Users</h3>
+        <div className='user-content'>
+          <button className="menu-btn" >Add User</button>
+          <SearchBar />
+        </div>
+
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Users</th>
-            <th>Updated By</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {existingUsers.map((user) => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td className='user-column'>{user.user}</td>
-              <td>{user.updatedBy}</td>
-              <td><button className="revoke-btn" onClick={() => revokeUser(user.id)}> Revoke</button></td>
-            </tr>
-          ))}
-          <tr>
-            <td>{existingUsers.length + 1}</td>
-            <td>
-              <input
-                placeholder="Add User"
-                value={newUser}
-                onChange={(e) => setNewUser(e.target.value)}
-              />
-            </td>
-            <td>Dr. David</td>
-            <td>
-              <button className="add-btn" onClick={addUser}>Add User</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <Paper sx={{ height: 700, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          initialState={{ pagination: { paginationModel } }}
+          pageSizeOptions={[10, 20]}
+          checkboxSelection
+          sx={{ border: 0 }}
+        />
+      </Paper>
     </div >
   );
 };

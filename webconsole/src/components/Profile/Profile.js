@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
 import NavBar from '../Utils/NavBar';
 import SideBar from '../Utils/SideBar';
-import { SlUser } from "react-icons/sl";
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Avatar from '@mui/material/Avatar';
 import './Profile.css';
 import { useLocation } from 'react-router-dom';
-// import { Route } from 'react-router-dom';
+import CheckIcon from '@mui/icons-material/Check';
+import DialogComponent from '../Utils/Dialog';
+import { Alert } from '@mui/material';
 
 const Profile = (props) => {
     const { state } = useLocation();
 
     const [userInfo, setUserInfo] = useState(state.userInfo);
-    const [isReadOnly, setIsReadOnly] = useState(true);
-    const [passwordUpdate, setPasswordUpdate] = useState(false);
-    const [message, setMessage] = useState('');
-
-    // const { userInfo } = route.params;
+    const [dialog, setDialog] = useState({ open: false, message: '' });
+    const [alert, setAlert] = useState({ show: false, message: '', type: '' });
 
     const handlePersonalDetailsUpdate = async (e) => {
         e.preventDefault();
-        setMessage('');
         const data = new FormData(e.target);
         const requestBody = {
             firstName: data.get('firstName'),
@@ -38,20 +38,18 @@ const Profile = (props) => {
             });
 
             if (response.ok) {
-                setPasswordUpdate(false)
-                setMessage('Personal details updated successfully!')
+                setAlert({ show: true, message: "Personal details updated successfully!", type: "success" });
             } else {
                 const data = await response.json();
-                setMessage(data.message || 'Invalid details provided');
+                setAlert({ show: true, message: data.message || 'Invalid details provided', type: "error" });
             }
         } catch (error) {
             console.error('Error during update:', error);
-            setMessage('An error occurred. Please try again.');
+            setAlert({ show: true, message: 'An error occurred. Please try again.', type: "error" });
         }
     };
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
-        setMessage('');
         const data = new FormData(e.target);
         const requestBody = {
             currentPassword: data.get('currentPassword'),
@@ -68,16 +66,19 @@ const Profile = (props) => {
             });
 
             if (response.ok) {
-                setPasswordUpdate(false)
-                setMessage('Password updated successfully!')
+                setAlert({ show: true, message: "Password updated successfully!", type: "success" });
             } else {
                 const data = await response.json();
-                setMessage(data.message || 'Invalid details provided');
+                setAlert({ show: true, message: data.message || 'Invalid details provided', type: "success" });
             }
         } catch (error) {
             console.error('Error during update:', error);
-            setMessage('An error occurred. Please try again.');
+            setAlert({ show: true, message: "An error occurred. Please try again.", type: "success" });
         }
+    };
+
+    const handleCancelDelete = () => {
+        setDialog({ open: false, message: "" });
     };
     return (
         <div className="profile-container">
@@ -86,18 +87,17 @@ const Profile = (props) => {
                 <SideBar access="true" tab="profile" />
                 <div className='profile-section'>
                     <div className="profile-info">
-                        <SlUser /> <div className='text-left'>{userInfo.username}</div>
-                        <button className="profile-btn" onClick={() => setPasswordUpdate(!passwordUpdate)}>
+                        <div className='center-user'><Avatar sx={{ width: 72, height: 72 }}>A</Avatar></div>
+                        <div >{userInfo.username}</div>
+                        <button className="profile-btn" onClick={() => setDialog({ open: true, message: `Update Password` })}>
                             Update Password
                         </button>
-                        <button className="profile-btn" onClick={() => setIsReadOnly(!isReadOnly)}>
-                            Update Details
-                        </button>
                     </div>
-                    {message && <p className="message">{message}</p>}
-                    {passwordUpdate ?
+                    {alert.show && <Alert icon={<CheckIcon fontSize="inherit" />} variant="outlined" severity={alert.type}>
+                        {alert.message}
+                    </Alert>}
+                    {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} no={"Cancel"} yes={"Save"} action={handlePasswordUpdate} cancel={handleCancelDelete} >
                         <form className='profile-form-password' onSubmit={handlePasswordUpdate}>
-                            <h3>Password Update</h3>
                             <div>
                                 <div className="form-group">
                                     <label htmlFor="currentPassword">Current Password</label>
@@ -114,50 +114,48 @@ const Profile = (props) => {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ "display": "flex" }}>
-                                <button type="cancel" className="btn-cancel" onClick={() => setPasswordUpdate(false)}>Cancel</button>
-                                <button type="submit" className="btn-submit">Save</button>
-                            </div>
-                        </form> : null}
-                    <form className='profile-form' onSubmit={handlePersonalDetailsUpdate}>
-                        <span className='profile-content'>
-                            <h3>Personal Information</h3><p className='text-left info-text'>(Click "Update Details" button to edit)</p>
-                        </span>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="firstName">First Name</label>
-                                <input className="form-control" type="text" value="Dr.David" id="firstName" name="firstName" disabled={isReadOnly} />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="username">Username</label>
-                                <input type="text" id="username" value="david" name="username" disabled={isReadOnly} />
-                            </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="lastName">Last Name</label>
-                                <input type="text" id="lastName" value="K" name="lastName" disabled={isReadOnly} />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="dob">Date of Birth</label>
-                                <input type="date" id="dob" name="dob" disabled={isReadOnly} />
-                            </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" disabled={isReadOnly} />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="email">Email</label>
-                                <input type="email" id="email" name="email" disabled={isReadOnly} />
-                            </div>
-                        </div>
-                        {!isReadOnly ? <div style={{ "display": "flex" }}>
-                            <button type="cancel" className="btn-cancel" onClick={() => setIsReadOnly(true)}>Cancel</button>
-                            <button type="submit" className="btn-submit">Save</button>
-                        </div> : null}
-                    </form>
+                        </form>
+                    </DialogComponent>}
+                    <Card sx={{ width: "80%" }}>
+                        <CardContent>
+                            <form className='profile-form' onSubmit={handlePersonalDetailsUpdate}>
+                                <h2>Personal Information</h2>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="firstName">First Name</label>
+                                        <input className="form-control" type="text" value="Dr.David" id="firstName" name="firstName" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="username">Username</label>
+                                        <input type="text" id="username" value="david" name="username" />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="lastName">Last Name</label>
+                                        <input type="text" id="lastName" value="K" name="lastName" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="dob">Date of Birth</label>
+                                        <input type="date" id="dob" name="dob" />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="phone">Phone Number</label>
+                                        <input type="tel" id="phone" name="phone" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="email">Email</label>
+                                        <input type="email" id="email" name="email" />
+                                    </div>
+                                </div>
+                                <div className='profile-info'>
+                                    <button type="submit" className="btn-submit">Save</button>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>
