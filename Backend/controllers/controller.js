@@ -131,6 +131,9 @@ const signup = async (req, res) => {
 };
 
 
+// const generateConfirmationCode = () => {
+//     return Math.floor(100000 + Math.random() * 900000).toString(); 
+// };
 
 
 const confirmationCodes = {
@@ -567,8 +570,122 @@ const get_submission = async (req, res) => {
 
 
 
+const submission_report = async (req, res) => {
+    const { submission_id } = req.body; 
+
+    try {
+        const responsesResult = await pool.query(`
+            SELECT 
+                r.question_id, 
+                o.options_id, 
+                o.options
+            FROM 
+                responses r
+            JOIN 
+                options o ON r.answer = o.options
+            WHERE 
+                r.submission_id = $1
+        `, [submission_id]);
+
+        if (responsesResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No responses found for this submission ID.' });
+        }
+
+        const diseaseWeights = {};
+        const totalWeights = {}; 
+
+        for (const response of responsesResult.rows) {
+            const { question_id, options_id } = response;
+
+            const weightQuery = `
+                SELECT 
+                    w.disease_id, 
+                    d.disease_name,
+                    w.weightage
+                FROM 
+                    questions_disease_weightage w
+                JOIN 
+                    chronic_diseases d ON w.disease_id = d.disease_id
+                WHERE 
+                    w.question_id = $1 AND w.options_id = $2
+            `;
+            const weightValues = await pool.query(weightQuery, [question_id, options_id]);
+
+            weightValues.rows.forEach(row => {
+                const { disease_id, disease_name, weightage } = row;
+
+                if (!diseaseWeights[disease_id]) {
+                    diseaseWeights[disease_id] = {
+                        disease_name,
+                        selected_weights: 0
+                    };
+                }
+                diseaseWeights[disease_id].selected_weights += weightage;
+
+                if (!totalWeights[disease_id]) {
+                    totalWeights[disease_id] = {
+                        total_weight: 0
+                    };
+                }
+                totalWeights[disease_id].total_weight += weightage;
+            });
+        }
+
+        const responseArray = Object.keys(diseaseWeights).map(disease_id => {
+            const { disease_name, selected_weights } = diseaseWeights[disease_id];
+            const total_weight = totalWeights[disease_id]?.total_weight || 1;
+            const risk_score = selected_weights / total_weight;
+
+            return {
+                disease_id,
+                disease_name,
+                risk_score
+            };
+        });
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+// request body :
+
+// {
+//     //    "submission_id": "40aacf43-a5d0-4e61-8e56-a0b1b97f827a"
+//        "submission_id": "df5deea3-1a8e-4d0c-b217-9f913ace26b4"
+// }
+
+// response bocy:
+
+// [
+//     {
+//         "disease_id": "1",
+//         "disease_name": "Cardiovascular Disease Risk",
+//         "risk_score": 1
+//     },
+//     {
+//         "disease_id": "2",
+//         "disease_name": "Diabetes and Metabolic Syndrome Risk",
+//         "risk_score": 1
+//     },
+//     {
+//         "disease_id": "9",
+//         "disease_name": "Stroke Risk",
+//         "risk_score": 1
+//     }
+// ]
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission};
+
+
+
+
+
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report};
 
 
