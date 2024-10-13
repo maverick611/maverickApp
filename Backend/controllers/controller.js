@@ -678,14 +678,103 @@ const submission_report = async (req, res) => {
 // ]
 
 
+// daily_questionnaire api
+
+const daily_questionnaire = async (req, res) => {
+    try {
+        const questionsResult = await pool.query(`
+            SELECT 
+                q.question_id, 
+                q.question,
+                o.options_id,
+                o.options
+            FROM 
+                questions q
+            JOIN 
+                question_disease_relation qdr ON q.question_id = qdr.question_id
+            JOIN 
+                chronic_diseases d ON qdr.disease_id = d.disease_id
+            JOIN 
+                questions_disease_weightage qdw ON q.question_id = qdw.question_id AND qdw.disease_id = d.disease_id
+            JOIN 
+                options o ON qdw.options_id = o.options_id
+            WHERE 
+                d.status = 'active' AND d.disease_name ILIKE '%daily%'
+            ORDER BY 
+                q.question_id, o.options_id
+        `);
+
+        if (questionsResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No daily questions found.' });
+        }
+
+        const responseMap = {};
+
+        questionsResult.rows.forEach(row => {
+            const { question_id, question, options_id, options } = row;
+
+            if (!responseMap[question_id]) {
+                responseMap[question_id] = {
+                    question_id,
+                    question,
+                    options: [] 
+                };
+            }
+
+            responseMap[question_id].options.push({
+                options_id,
+                options
+            });
+        });
+
+        const responseArray = Object.values(responseMap);
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+// req body:
+
+// nothing new
+
+//response body:
+// [
+//     {
+//         "question_id": 3,
+//         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "options": [
+//             {
+//                 "options_id": 38,
+//                 "options": "yes"
+//             },
+//             {
+//                 "options_id": 39,
+//                 "options": "no"
+//             }
+//         ]
+//     },
+//     {
+//         "question_id": 16,
+//         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "options": [
+//             {
+//                 "options_id": 40,
+//                 "options": "yes"
+//             },
+//             {
+//                 "options_id": 41,
+//                 "options": "no"
+//             }
+//         ]
+//     }
+// ]
 
 
 
-
-
-
-
-
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report};
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire};
 
 
