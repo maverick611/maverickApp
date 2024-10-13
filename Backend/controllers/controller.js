@@ -499,8 +499,54 @@ const reports = async (req, res) => {
 
 
 
+//function for retrieving information for a certain submission
+
+const get_submission = async (req, res) => {
+    const { submission_id } = req.body; 
+
+    try {
+        const responsesResult = await pool.query(`
+            SELECT r.question_id, q.question, r.answer
+            FROM responses r
+            JOIN questions q ON r.question_id = q.question_id
+            WHERE r.submission_id = $1
+            ORDER BY r.question_id
+        `, [submission_id]);
+
+        if (responsesResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No responses found for this submission ID.' });
+        }
+
+        const responseMap = {};
+
+        responsesResult.rows.forEach(response => {
+            const { question_id, question, answer } = response;
+
+            if (!responseMap[question_id]) {
+                responseMap[question_id] = {
+                    question_id,
+                    question,
+                    answers: [] 
+                };
+            }
+
+            responseMap[question_id].answers.push(answer);
+        });
+
+        const responseArray = Object.values(responseMap);
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports};
+
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission};
 
 
