@@ -287,17 +287,29 @@ const questionnaire_responses = async (req, res) => {
         const submission_id = submissionResult.rows[0].submission_id;
 
         const diseaseWeights = {};
-        const totalWeights = {}; 
+        const totalWeights = {};
 
         for (const response of responses) {
             const { question_id, options_selected } = response;
+
+            const optionsQuery = `
+                SELECT 
+                    options_id, 
+                    options AS option_text 
+                FROM 
+                    options 
+                WHERE 
+                    options_id = ANY($1::int[])
+            `;
+            const optionsResult = await pool.query(optionsQuery, [options_selected]);
+
+            const optionTexts = optionsResult.rows.map(row => row.option_text);
 
             const weightQuery = `
                 SELECT 
                     w.disease_id, 
                     d.disease_name,
-                    w.weightage,
-                    o.options AS option_text
+                    w.weightage
                 FROM 
                     questions_disease_weightage w
                 JOIN 
@@ -307,7 +319,7 @@ const questionnaire_responses = async (req, res) => {
                 WHERE 
                     w.question_id = $1 AND o.options = ANY($2::text[])
             `;
-            const weightValues = await pool.query(weightQuery, [question_id, options_selected]);
+            const weightValues = await pool.query(weightQuery, [question_id, optionTexts]);
 
             weightValues.rows.forEach(row => {
                 const { disease_id, disease_name, weightage } = row;
@@ -321,17 +333,15 @@ const questionnaire_responses = async (req, res) => {
                 diseaseWeights[disease_id].selected_weights += weightage;
 
                 if (!totalWeights[disease_id]) {
-                    totalWeights[disease_id] = {
-                        total_weight: 0
-                    };
+                    totalWeights[disease_id] = { total_weight: 0 };
                 }
                 totalWeights[disease_id].total_weight += weightage;
             });
 
-            for (const option of options_selected) {
+            for (const option_id of options_selected) {
                 await pool.query(
                     'INSERT INTO responses (question_id, answer, submission_id) VALUES ($1, $2, $3)',
-                    [question_id, option, submission_id]
+                    [question_id, option_id, submission_id]
                 );
             }
         }
@@ -356,6 +366,42 @@ const questionnaire_responses = async (req, res) => {
 };
 
 
+//req body:
+
+
+// {
+//     "responses": [
+//         {
+//             "question_id": 1,
+//             "options_selected": [1]
+//         },
+//         {
+//             "question_id": 2,
+//             "options_selected": [3]
+//         }
+//     ]
+// }
+
+
+//response body:
+
+// [
+//     {
+//         "disease_id": "1",
+//         "disease_name": "Cardiovascular Disease Risk",
+//         "risk_score": 1
+//     },
+//     {
+//         "disease_id": "2",
+//         "disease_name": "Diabetes and Metabolic Syndrome Risk",
+//         "risk_score": 1
+//     },
+//     {
+//         "disease_id": "9",
+//         "disease_name": "Stroke Risk",
+//         "risk_score": 1
+//     }
+// ]
 
 
 
