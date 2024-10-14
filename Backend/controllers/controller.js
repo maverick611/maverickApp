@@ -892,6 +892,154 @@ const daily_questionnaire_responses = async (req, res) => {
 //no return, just saves responses in DB
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses};
+
+//for daily reports page
+
+const daily_reports = async (req, res) => {
+    const user_id = req.userId;
+
+    try {
+        const submissionsResult = await pool.query(`
+            SELECT 
+                s.submission_id,
+                s.timestamp
+            FROM 
+                submissions s
+            JOIN 
+                responses r ON s.submission_id = r.submission_id
+            JOIN 
+                questions_disease_weightage qdw ON r.question_id = qdw.question_id
+            JOIN 
+                chronic_diseases d ON qdw.disease_id = d.disease_id
+            WHERE 
+                s.user_id = $1 AND d.disease_name ILIKE '%daily%'
+            GROUP BY 
+                s.submission_id
+            ORDER BY 
+                MAX(s.timestamp) DESC 
+            LIMIT 10
+        `, [user_id]);
+
+        const submissions = submissionsResult.rows;
+
+        if (submissions.length === 0) {
+            return res.status(404).json({ message: 'No daily submissions found.' });
+        }
+
+        const submissionIds = submissions.map(row => row.submission_id);
+
+        const diseaseWeights = {};
+        const totalWeights = {};
+
+        const weightQuery = `
+            SELECT 
+                r.submission_id,
+                qdw.disease_id,
+                d.disease_name,
+                qdw.weightage
+            FROM 
+                responses r
+            JOIN 
+                questions_disease_weightage qdw ON r.question_id = qdw.question_id
+            JOIN 
+                chronic_diseases d ON qdw.disease_id = d.disease_id
+            WHERE 
+                r.submission_id = ANY($1::uuid[]) AND d.disease_name ILIKE '%daily%'
+        `;
+        
+        const weightValues = await pool.query(weightQuery, [submissionIds]);
+
+        weightValues.rows.forEach(row => {
+            const { disease_id, disease_name, weightage, submission_id } = row;
+
+            if (!diseaseWeights[submission_id]) {
+                diseaseWeights[submission_id] = {};
+            }
+
+            if (!diseaseWeights[submission_id][disease_id]) {
+                diseaseWeights[submission_id][disease_id] = {
+                    disease_name,
+                    selected_weights: 0
+                };
+            }
+            diseaseWeights[submission_id][disease_id].selected_weights += weightage;
+
+            if (!totalWeights[submission_id]) {
+                totalWeights[submission_id] = {};
+            }
+            if (!totalWeights[submission_id][disease_id]) {
+                totalWeights[submission_id][disease_id] = {
+                    total_weight: 0
+                };
+            }
+            totalWeights[submission_id][disease_id].total_weight += weightage;
+        });
+
+        const responseArray = submissions.map(submission => {
+            const submission_id = submission.submission_id;
+            const timestamp = submission.timestamp;
+
+            const risk_assessments = Object.keys(diseaseWeights[submission_id] || {}).map(disease_id => {
+                const { disease_name, selected_weights } = diseaseWeights[submission_id][disease_id];
+                const total_weight = totalWeights[submission_id][disease_id]?.total_weight || 1;
+                const risk_score = selected_weights / total_weight;
+
+                return {
+                    disease_id,
+                    disease_name,
+                    risk_score
+                };
+            });
+
+            return {
+                submission_id,
+                timestamp,
+                risk_assessments
+            };
+        });
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+//request body
+
+//nothing except token
+
+//response body
+
+// [
+//     {
+//         "submission_id": "f1665bbe-92c9-4a9d-bca6-3ec1fde53d1e",
+//         "timestamp": "2024-10-14T04:02:12.125Z",
+//         "risk_assessments": [
+//             {
+//                 "disease_id": "11",
+//                 "disease_name": "daily",
+//                 "risk_score": 1
+//             }
+//         ]
+//     },
+//     {
+//         "submission_id": "88e09614-75cb-4156-981c-ae75cb02be13",
+//         "timestamp": "2024-10-14T03:58:11.463Z",
+//         "risk_assessments": [
+//             {
+//                 "disease_id": "11",
+//                 "disease_name": "daily",
+//                 "risk_score": 1
+//             }
+//         ]
+//     },
+// ]
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses, daily_reports};
 
 
