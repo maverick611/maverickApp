@@ -4,12 +4,6 @@ import {Picker} from '@react-native-picker/picker';
 import Header from '../Header/Header';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BarChart, Grid} from 'react-native-svg-charts';
-const barData = [
-  {quarter: 1, earnings: 13000},
-  {quarter: 2, earnings: 16500},
-  {quarter: 3, earnings: 14250},
-  {quarter: 4, earnings: 19000},
-];
 
 const Reports = props => {
   const {navigation} = props;
@@ -35,7 +29,7 @@ const Reports = props => {
   const [selectedValue, setSelectedValue] = useState('osteoporosis');
 
   const fill = 'rgb(134, 65, 244)';
-  const data = [50, 10, 40, 95, null, 85, 0, 35, 53, 24, 50];
+  const data = [50, 10, 40, 95, 10, 85, 11, 35];
   return (
     <View>
       <Header />
@@ -127,9 +121,7 @@ const Reports = props => {
         style={{height: 200}}
         data={data}
         svg={{fill}}
-        contentInset={{top: 30, bottom: 30}}>
-        <Grid />
-      </BarChart>
+        contentInset={{top: 30, bottom: 30}}></BarChart>
     </View>
   );
 };
