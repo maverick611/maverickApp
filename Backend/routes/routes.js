@@ -22,7 +22,7 @@ router.post('/signup', signup)
 router.get('/questionnaire', auth, questionnaire); 
 router.post('/questionnaire_responses', auth, questionnaire_responses); 
 router.post('/confirm_signup', confirm_signup); 
-router.post('/logout', logout);
+router.get('/logout', logout);
 router.get('/home',auth, home);
 router.get('/reports',auth, reports);
 router.get('/get_submission', auth, get_submission)
