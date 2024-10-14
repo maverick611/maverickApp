@@ -686,8 +686,9 @@ const daily_questionnaire = async (req, res) => {
             SELECT 
                 q.question_id, 
                 q.question,
-                o.options_id,
-                o.options
+                q.question_type,
+                o.options_id AS id,
+                o.options AS text
             FROM 
                 questions q
             JOIN 
@@ -711,20 +712,18 @@ const daily_questionnaire = async (req, res) => {
         const responseMap = {};
 
         questionsResult.rows.forEach(row => {
-            const { question_id, question, options_id, options } = row;
+            const { question_id, question, question_type, id, text } = row;
 
             if (!responseMap[question_id]) {
                 responseMap[question_id] = {
                     question_id,
                     question,
-                    options: [] 
+                    options: [],
+                    type: question_type
                 };
             }
 
-            responseMap[question_id].options.push({
-                options_id,
-                options
-            });
+            responseMap[question_id].options.push({ id, text });
         });
 
         const responseArray = Object.values(responseMap);
@@ -735,6 +734,8 @@ const daily_questionnaire = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
 
 
 // req body:
@@ -748,28 +749,30 @@ const daily_questionnaire = async (req, res) => {
 //         "question": "Do you engage in less than 30 minutes of physical activity daily?",
 //         "options": [
 //             {
-//                 "options_id": 38,
-//                 "options": "yes"
+//                 "id": 38,
+//                 "text": "yes"
 //             },
 //             {
-//                 "options_id": 39,
-//                 "options": "no"
+//                 "id": 39,
+//                 "text": "no"
 //             }
-//         ]
+//         ],
+//         "type": "single_choice"
 //     },
 //     {
 //         "question_id": 16,
 //         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
 //         "options": [
 //             {
-//                 "options_id": 40,
-//                 "options": "yes"
+//                 "id": 40,
+//                 "text": "yes"
 //             },
 //             {
-//                 "options_id": 41,
-//                 "options": "no"
+//                 "id": 41,
+//                 "text": "no"
 //             }
-//         ]
+//         ],
+//         "type": "single_choice"
 //     }
 // ]
 
