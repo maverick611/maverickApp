@@ -41,13 +41,17 @@ const renderQuestion = (
           {question.options.map((option, i) => (
             <TouchableOpacity
               onPress={() =>
-                updateQuestionsAnswer(option.id, question.question_id)
+                updateQuestionsAnswer(
+                  option.id,
+                  question.question_id,
+                  'single_choice',
+                )
               }
               key={i}>
               <View
                 style={{display: 'flex', flexDirection: 'row', margin: 5}}
                 key={i}>
-                {currentAnswers[question.question_id] === option.id ? (
+                {currentAnswers[question.question_id][0] === option.id ? (
                   <FontAwesomeIcon name="dot-circle-o" size={19} />
                 ) : (
                   <EntypoIcon name={'circle'} size={15} />
@@ -68,15 +72,46 @@ const renderQuestion = (
 const LongQuestionnaire = props => {
   const {navigation, isItDailyQuestions, loginToken} = props;
   const [currentPage, setCurrentPage] = useState(0);
-  // while fetching questions , setCurrentAnswers
   const [currentAnswers, setCurrentAnswers] = useState({});
-  const updateQuestionsAnswer = (option_id, disease_id) => {
-    setCurrentAnswers(prev => ({...prev, [disease_id]: option_id}));
+  const updateQuestionsAnswer = (option_id, question_id, questionType) => {
+    if (questionType === 'single_choice') {
+      setCurrentAnswers(prev => ({...prev, [question_id]: [option_id]}));
+    }
   };
 
   const url = isItDailyQuestions
     ? 'http://10.0.2.2:3000/daily_questionnaire'
     : 'http://10.0.2.2:3000/questionnaire';
+
+  const submitURL = !isItDailyQuestions
+    ? 'http://10.0.2.2:3000/questionnaire_responses'
+    : '';
+
+  const transformToDesiredStructure = data => {
+    return Object.entries(data).map(([question_id, options_selected]) => {
+      return {
+        question_id: parseInt(question_id, 10),
+        options_selected: options_selected,
+      };
+    });
+  };
+
+  const submitQuestionnare = async () => {
+    console.log(submitURL);
+    const response = await fetch(submitURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: `Bearer ${loginToken}`,
+      },
+      body: JSON.stringify({
+        responses: transformToDesiredStructure(currentAnswers),
+      }),
+    });
+    const data = await response.json();
+
+    console.log('ooouuutt', data);
+  };
   const [questions, setLongQuestionnaire] = useState([]);
   useEffect(() => {
     const fetchLongQuestionnaire = async () => {
@@ -89,7 +124,13 @@ const LongQuestionnaire = props => {
       });
       const allQuestions = await response.json();
       if (response.ok) {
-        const allQuesionID = allQuestions.map(q => ({[q.question_id]: ''}));
+        let allQuesionID = allQuestions.map(q => ({[q.question_id]: []}));
+        allQuesionID = allQuesionID.reduce((acc, curr) => {
+          const key = Object.keys(curr)[0];
+          acc[key] = curr[key];
+          return acc;
+        }, {});
+
         setCurrentAnswers(allQuesionID);
         setLongQuestionnaire(allQuestions);
       }
@@ -147,7 +188,7 @@ const LongQuestionnaire = props => {
           <Button title="save draft" />
           {currentPage == Math.ceil(whichQuestionsToUse.length / 10) - 1 && (
             <View style={{marginTop: 5}}>
-              <Button title="Submit" />
+              <Button title="Submit" onPress={submitQuestionnare} />
             </View>
           )}
         </View>
