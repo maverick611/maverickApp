@@ -69,382 +69,37 @@ const LongQuestionnaire = props => {
   const {navigation, isItDailyQuestions, loginToken} = props;
   const [currentPage, setCurrentPage] = useState(0);
   // while fetching questions , setCurrentAnswers
-  const [currentAnswers, setCurrentAnswers] = useState({
-    7: '',
-    4: '',
-    100: '',
-    1: '',
-    5: '',
-    2: '',
-    3: '',
-    400: '',
-    6: '',
-    300: '',
-    17: '',
-    14: '',
-    111: '',
-    11: '',
-    15: '',
-    12: '',
-    23: '',
-    33: '',
-    16: '',
-    13: '',
-  });
+  const [currentAnswers, setCurrentAnswers] = useState({});
   const updateQuestionsAnswer = (option_id, disease_id) => {
     setCurrentAnswers(prev => ({...prev, [disease_id]: option_id}));
   };
 
+  const url = isItDailyQuestions
+    ? 'http://10.0.2.2:3000/daily_questionnaire'
+    : 'http://10.0.2.2:3000/questionnaire';
   const [questions, setLongQuestionnaire] = useState([]);
   useEffect(() => {
     const fetchLongQuestionnaire = async () => {
-      const response = await fetch('http://10.0.2.2:3000/questionnaire', {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           authorization: `Bearer ${loginToken}`,
           'Content-Type': 'application/json',
         },
       });
-      console.log('loginToken', loginToken);
       const allQuestions = await response.json();
-      console.log(allQuestions);
       if (response.ok) {
         const allQuesionID = allQuestions.map(q => ({[q.question_id]: ''}));
-
         setCurrentAnswers(allQuesionID);
         setLongQuestionnaire(allQuestions);
       }
     };
     fetchLongQuestionnaire();
   }, []);
-  // const questions = [
-  //   {
-  //     question_id: 7,
-  //     question: 'Do you have a family history of cardiovascular disease?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 7,
-  //     question: 'Do you have a family history of cardiovascular disease?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 4,
-  //     question: 'Do you experience shortness of breath after minimal exertion?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     question_id: 100,
-  //     question: 'Do you sit for more than 8 hours a day?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       ,
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 1,
-  //   },
-  //   {
-  //     question_id: 1,
-  //     question: 'Do you sit for more than 8 hours a day?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 10,
-  //   },
-  //   {
-  //     question_id: 5,
-  //     question: 'Have you been diagnosed with high cholesterol levels?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 2,
-  //     question: 'Have you been diagnosed with high blood pressure?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 3,
-  //     question:
-  //       'Do you engage in less than 30 minutes of physical activity daily?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 1,
-  //   },
-  //   {
-  //     question_id: 400,
-  //     question:
-  //       'Do you engage in less than 30 minutes of physical activity daily?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 3,
-  //   },
-  //   {
-  //     question_id: 6,
-  //     question: 'Do you often experience swelling in your legs or ankles?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 300,
-  //     question:
-  //       'Do you engage in less than 30 minutes of physical activity daily?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 10,
-  //   },
-
-  //   {
-  //     question_id: 17,
-  //     question: 'Do you have a family history of cardiovascular disease?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 14,
-  //     question: 'Do you experience shortness of breath after minimal exertion?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 111,
-  //     question: 'Do you sit for more than 8 hours a day?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 1,
-  //   },
-  //   {
-  //     question_id: 11,
-  //     question: 'Do you sit for more than 8 hours a day?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 10,
-  //   },
-  //   {
-  //     question_id: 15,
-  //     question: 'Have you been diagnosed with high cholesterol levels?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 12,
-  //     question: 'Have you been diagnosed with high blood pressure?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 23,
-  //     question:
-  //       'Do you engage in less than 30 minutes of physical activity daily?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 1,
-  //   },
-  //   {
-  //     question_id: 33,
-  //     question:
-  //       'Do you engage in less than 30 minutes of physical activity daily?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 3,
-  //   },
-  //   {
-  //     question_id: 16,
-  //     question: 'Do you often experience swelling in your legs or ankles?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: null,
-  //   },
-  //   {
-  //     question_id: 13,
-  //     question:
-  //       'Do you engage in less than 30 minutes of physical activity daily?',
-  //     options: [
-  //       {id: 1, text: 'no', value: 5},
-  //       {id: 2, text: 'yes', value: 0},
-  //       {id: 3, text: 'sometimes', value: 2.5},
-  //     ],
-  //     type: 'single_choice',
-  //     disease_id: 10,
-  //   },
-  // ];
-  const dailyQuestions = [
-    {
-      question_id: 2,
-      question: 'Have you been diagnosed with high blood pressure?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-      ],
-      type: 'single_choice',
-      disease_id: null,
-    },
-    {
-      question_id: 3,
-      question:
-        'Do you engage in less than 30 minutes of physical activity daily?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-        {id: 3, text: 'sometimes', value: 2.5},
-      ],
-      type: 'single_choice',
-      disease_id: 1,
-    },
-    {
-      question_id: 400,
-      question:
-        'Do you engage in less than 30 minutes of physical activity daily?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-      ],
-      type: 'single_choice',
-      disease_id: 3,
-    },
-    {
-      question_id: 6,
-      question: 'Do you often experience swelling in your legs or ankles?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-      ],
-      type: 'single_choice',
-      disease_id: null,
-    },
-    {
-      question_id: 111,
-      question: 'Do you sit for more than 8 hours a day?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-      ],
-      type: 'single_choice',
-      disease_id: 1,
-    },
-    {
-      question_id: 11,
-      question: 'Do you sit for more than 8 hours a day?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-      ],
-      type: 'single_choice',
-      disease_id: 10,
-    },
-    {
-      question_id: 15,
-      question: 'Have you been diagnosed with high cholesterol levels?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-      ],
-      type: 'single_choice',
-      disease_id: null,
-    },
-    {
-      question_id: 12,
-      question: 'Have you been diagnosed with high blood pressure?',
-      options: [
-        {id: 1, text: 'no', value: 5},
-        {id: 2, text: 'yes', value: 0},
-        {id: 3, text: 'sometimes', value: 2.5},
-      ],
-      type: 'single_choice',
-      disease_id: null,
-    },
-  ];
-  let whichQuestionsToUse = isItDailyQuestions ? dailyQuestions : questions;
+  let whichQuestionsToUse = questions;
   return (
     <ScrollView style={{backgroundColor: 'rgb(226	244	254	)'}}>
       <View style={styles.container}>
-        {console.log(
-          'currentPage',
-          whichQuestionsToUse.filter(
-            (q, index) =>
-              index >= currentPage * 10 && index <= 10 * (currentPage + 1),
-          ),
-        )}
         <View>
           {whichQuestionsToUse
             .filter(
@@ -475,10 +130,6 @@ const LongQuestionnaire = props => {
             {currentPage + 1} / {Math.ceil(whichQuestionsToUse.length / 10)}
           </Text>
           <View style={styles.navButton}>
-            {console.log(
-              'Math.ceil(whichQuestionsToUse.length / 10)',
-              Math.ceil(whichQuestionsToUse.length / 10),
-            )}
             <Button
               title="Next"
               onPress={() =>
@@ -491,7 +142,6 @@ const LongQuestionnaire = props => {
               }
             />
           </View>
-          {console.log('pageeee', currentPage)}
         </View>
         <View style={styles.saveAsDraftContainer}>
           <Button title="save draft" />

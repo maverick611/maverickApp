@@ -9,7 +9,18 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 const Profile = props => {
-  const {setIsAuth} = props;
+  const {setIsAuth, loginToken, setLoginToken} = props;
+  const callLogOut = async () => {
+    setIsAuth(false);
+    setLoginToken(null);
+    const response = await fetch('http://10.0.2.2:3000/logout', {
+      method: 'GET',
+      headers: {
+        authorization: `Bearer ${loginToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  };
   const {navigation} = props;
   const onClickComponentToShow = {
     'PERSONAL INFORMATION': 'UpdatePersonalInfo',
@@ -31,7 +42,7 @@ const Profile = props => {
             title={value}
             onPress={() =>
               value === 'LOG OUT'
-                ? setIsAuth(false)
+                ? callLogOut()
                 : navigation.navigate(onClickComponentToShow[value])
             }
           />

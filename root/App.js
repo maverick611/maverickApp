@@ -72,6 +72,7 @@ const App = () => {
               {...props}
               setIsAuth={setIsAuth}
               setLoginToken={setLoginToken}
+              loginToken={loginToken}
             />
           )}
         </Stack.Screen>

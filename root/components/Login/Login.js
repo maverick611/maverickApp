@@ -43,7 +43,6 @@ const Login = props => {
       });
       const statusCode = response.status;
       const result = await response.json();
-      console.log('rrrresult', result);
       if (response.ok) {
         setIsAuth(true);
         setLoginToken(result.token);
