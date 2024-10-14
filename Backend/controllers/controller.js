@@ -338,10 +338,10 @@ const questionnaire_responses = async (req, res) => {
                 totalWeights[disease_id].total_weight += weightage;
             });
 
-            for (const option_id of options_selected) {
+            for (const optionText of optionTexts) {
                 await pool.query(
                     'INSERT INTO responses (question_id, answer, submission_id) VALUES ($1, $2, $3)',
-                    [question_id, option_id, submission_id]
+                    [question_id, optionText, submission_id]
                 );
             }
         }
@@ -366,6 +366,7 @@ const questionnaire_responses = async (req, res) => {
 };
 
 
+
 //req body:
 
 
@@ -373,11 +374,11 @@ const questionnaire_responses = async (req, res) => {
 //     "responses": [
 //         {
 //             "question_id": 1,
-//             "options_selected": [1]
+//             "options_selected": [1] //option ids
 //         },
 //         {
 //             "question_id": 2,
-//             "options_selected": [3]
+//             "options_selected": [3] //option ids
 //         }
 //     ]
 // }
