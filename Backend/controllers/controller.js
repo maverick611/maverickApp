@@ -131,6 +131,9 @@ const signup = async (req, res) => {
 };
 
 
+// const generateConfirmationCode = () => {
+//     return Math.floor(100000 + Math.random() * 900000).toString(); 
+// };
 
 
 const confirmationCodes = {
@@ -355,6 +358,10 @@ const questionnaire_responses = async (req, res) => {
 
 
 
+
+
+
+
 // logout function
 const logout = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -506,11 +513,21 @@ const get_submission = async (req, res) => {
 
     try {
         const responsesResult = await pool.query(`
-            SELECT r.question_id, q.question, r.answer
-            FROM responses r
-            JOIN questions q ON r.question_id = q.question_id
-            WHERE r.submission_id = $1
-            ORDER BY r.question_id
+            SELECT 
+                r.question_id, 
+                q.question, 
+                r.answer, 
+                o.options_id AS option_id
+            FROM 
+                responses r
+            JOIN 
+                questions q ON r.question_id = q.question_id
+            JOIN 
+                options o ON r.answer = o.options
+            WHERE 
+                r.submission_id = $1
+            ORDER BY 
+                r.question_id
         `, [submission_id]);
 
         if (responsesResult.rows.length === 0) {
@@ -520,17 +537,194 @@ const get_submission = async (req, res) => {
         const responseMap = {};
 
         responsesResult.rows.forEach(response => {
-            const { question_id, question, answer } = response;
+            const { question_id, question, answer, option_id } = response;
 
             if (!responseMap[question_id]) {
                 responseMap[question_id] = {
                     question_id,
                     question,
-                    answers: [] 
+                    answers: []
                 };
             }
 
-            responseMap[question_id].answers.push(answer);
+            responseMap[question_id].answers.push({
+                option_id,
+                answer
+            });
+        });
+
+        const responseArray = Object.values(responseMap).map(({ question_id, question, answers }) => ({
+            question_id,
+            question,
+            answers: answers.filter((ans, index, self) =>
+                index === self.findIndex(a => a.answer === ans.answer)
+            )
+        }));
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
+const submission_report = async (req, res) => {
+    const { submission_id } = req.body; 
+
+    try {
+        const responsesResult = await pool.query(`
+            SELECT 
+                r.question_id, 
+                o.options_id, 
+                o.options
+            FROM 
+                responses r
+            JOIN 
+                options o ON r.answer = o.options
+            WHERE 
+                r.submission_id = $1
+        `, [submission_id]);
+
+        if (responsesResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No responses found for this submission ID.' });
+        }
+
+        const diseaseWeights = {};
+        const totalWeights = {}; 
+
+        for (const response of responsesResult.rows) {
+            const { question_id, options_id } = response;
+
+            const weightQuery = `
+                SELECT 
+                    w.disease_id, 
+                    d.disease_name,
+                    w.weightage
+                FROM 
+                    questions_disease_weightage w
+                JOIN 
+                    chronic_diseases d ON w.disease_id = d.disease_id
+                WHERE 
+                    w.question_id = $1 AND w.options_id = $2
+            `;
+            const weightValues = await pool.query(weightQuery, [question_id, options_id]);
+
+            weightValues.rows.forEach(row => {
+                const { disease_id, disease_name, weightage } = row;
+
+                if (!diseaseWeights[disease_id]) {
+                    diseaseWeights[disease_id] = {
+                        disease_name,
+                        selected_weights: 0
+                    };
+                }
+                diseaseWeights[disease_id].selected_weights += weightage;
+
+                if (!totalWeights[disease_id]) {
+                    totalWeights[disease_id] = {
+                        total_weight: 0
+                    };
+                }
+                totalWeights[disease_id].total_weight += weightage;
+            });
+        }
+
+        const responseArray = Object.keys(diseaseWeights).map(disease_id => {
+            const { disease_name, selected_weights } = diseaseWeights[disease_id];
+            const total_weight = totalWeights[disease_id]?.total_weight || 1;
+            const risk_score = selected_weights / total_weight;
+
+            return {
+                disease_id,
+                disease_name,
+                risk_score
+            };
+        });
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+// request body :
+
+// {
+//     //    "submission_id": "40aacf43-a5d0-4e61-8e56-a0b1b97f827a"
+//        "submission_id": "df5deea3-1a8e-4d0c-b217-9f913ace26b4"
+// }
+
+// response bocy:
+
+// [
+//     {
+//         "disease_id": "1",
+//         "disease_name": "Cardiovascular Disease Risk",
+//         "risk_score": 1
+//     },
+//     {
+//         "disease_id": "2",
+//         "disease_name": "Diabetes and Metabolic Syndrome Risk",
+//         "risk_score": 1
+//     },
+//     {
+//         "disease_id": "9",
+//         "disease_name": "Stroke Risk",
+//         "risk_score": 1
+//     }
+// ]
+
+
+// daily_questionnaire api
+
+const daily_questionnaire = async (req, res) => {
+    try {
+        const questionsResult = await pool.query(`
+            SELECT 
+                q.question_id, 
+                q.question,
+                o.options_id,
+                o.options
+            FROM 
+                questions q
+            JOIN 
+                question_disease_relation qdr ON q.question_id = qdr.question_id
+            JOIN 
+                chronic_diseases d ON qdr.disease_id = d.disease_id
+            JOIN 
+                questions_disease_weightage qdw ON q.question_id = qdw.question_id AND qdw.disease_id = d.disease_id
+            JOIN 
+                options o ON qdw.options_id = o.options_id
+            WHERE 
+                d.status = 'active' AND d.disease_name ILIKE '%daily%'
+            ORDER BY 
+                q.question_id, o.options_id
+        `);
+
+        if (questionsResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No daily questions found.' });
+        }
+
+        const responseMap = {};
+
+        questionsResult.rows.forEach(row => {
+            const { question_id, question, options_id, options } = row;
+
+            if (!responseMap[question_id]) {
+                responseMap[question_id] = {
+                    question_id,
+                    question,
+                    options: [] 
+                };
+            }
+
+            responseMap[question_id].options.push({
+                options_id,
+                options
+            });
         });
 
         const responseArray = Object.values(responseMap);
@@ -543,10 +737,44 @@ const get_submission = async (req, res) => {
 };
 
 
+// req body:
+
+// nothing new
+
+//response body:
+// [
+//     {
+//         "question_id": 3,
+//         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "options": [
+//             {
+//                 "options_id": 38,
+//                 "options": "yes"
+//             },
+//             {
+//                 "options_id": 39,
+//                 "options": "no"
+//             }
+//         ]
+//     },
+//     {
+//         "question_id": 16,
+//         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "options": [
+//             {
+//                 "options_id": 40,
+//                 "options": "yes"
+//             },
+//             {
+//                 "options_id": 41,
+//                 "options": "no"
+//             }
+//         ]
+//     }
+// ]
 
 
 
-
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission};
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire};
 
 
