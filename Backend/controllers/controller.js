@@ -825,6 +825,73 @@ const daily_questionnaire = async (req, res) => {
 
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire};
+
+// responses for daily questions
+
+const daily_questionnaire_responses = async (req, res) => {
+    const { responses } = req.body; 
+    const user_id = req.userId;
+
+    try {
+        const submissionResult = await pool.query(
+            'INSERT INTO submissions (user_id, timestamp) VALUES ($1, NOW()) RETURNING submission_id',
+            [user_id]
+        );
+
+        const submission_id = submissionResult.rows[0].submission_id;
+
+        for (const response of responses) {
+            const { question_id, options_selected } = response;
+
+            const optionsQuery = `
+                SELECT 
+                    options_id, 
+                    options AS option_text 
+                FROM 
+                    options 
+                WHERE 
+                    options_id = ANY($1::int[])
+            `;
+            const optionsResult = await pool.query(optionsQuery, [options_selected]);
+
+            const optionTexts = optionsResult.rows.map(row => row.option_text);
+
+            for (const optionText of optionTexts) {
+                await pool.query(
+                    'INSERT INTO responses (question_id, answer, submission_id) VALUES ($1, $2, $3)',
+                    [question_id, optionText, submission_id]
+                );
+            }
+        }
+        res.status(200).json({ message: 'Responses submitted successfully.' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+//request body 
+
+// {
+//     "responses": [
+//         {
+//             "question_id": 3,
+//             "options_selected": [38]
+//         },
+//         {
+//             "question_id": 16,
+//             "options_selected": [41]
+//         }
+//     ]
+// }
+
+// response body
+
+//no return, just saves responses in DB
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses};
 
 
