@@ -686,6 +686,7 @@ const daily_questionnaire = async (req, res) => {
             SELECT 
                 q.question_id, 
                 q.question,
+                q.question_type,
                 o.options_id,
                 o.options
             FROM 
@@ -711,12 +712,13 @@ const daily_questionnaire = async (req, res) => {
         const responseMap = {};
 
         questionsResult.rows.forEach(row => {
-            const { question_id, question, options_id, options } = row;
+            const { question_id, question, question_type, options_id, options } = row;
 
             if (!responseMap[question_id]) {
                 responseMap[question_id] = {
                     question_id,
                     question,
+                    question_type,
                     options: [] 
                 };
             }
@@ -737,6 +739,7 @@ const daily_questionnaire = async (req, res) => {
 };
 
 
+
 // req body:
 
 // nothing new
@@ -746,6 +749,7 @@ const daily_questionnaire = async (req, res) => {
 //     {
 //         "question_id": 3,
 //         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "question_type": "single_choice",
 //         "options": [
 //             {
 //                 "options_id": 38,
@@ -760,6 +764,7 @@ const daily_questionnaire = async (req, res) => {
 //     {
 //         "question_id": 16,
 //         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "question_type": "single_choice",
 //         "options": [
 //             {
 //                 "options_id": 40,
