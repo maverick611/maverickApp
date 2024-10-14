@@ -66,7 +66,7 @@ const renderQuestion = (
 };
 
 const LongQuestionnaire = props => {
-  const {navigation, isItDailyQuestions} = props;
+  const {navigation, isItDailyQuestions, loginToken} = props;
   const [currentPage, setCurrentPage] = useState(0);
   // while fetching questions , setCurrentAnswers
   const [currentAnswers, setCurrentAnswers] = useState({
@@ -98,10 +98,19 @@ const LongQuestionnaire = props => {
   const [questions, setLongQuestionnaire] = useState([]);
   useEffect(() => {
     const fetchLongQuestionnaire = async () => {
-      const response = await fetch('http://10.0.2.2:3000/questionnaire');
+      const response = await fetch('http://10.0.2.2:3000/questionnaire', {
+        method: 'GET',
+        headers: {
+          authorization: `Bearer ${loginToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('loginToken', loginToken);
       const allQuestions = await response.json();
+      console.log(allQuestions);
       if (response.ok) {
         const allQuesionID = allQuestions.map(q => ({[q.question_id]: ''}));
+
         setCurrentAnswers(allQuesionID);
         setLongQuestionnaire(allQuestions);
       }

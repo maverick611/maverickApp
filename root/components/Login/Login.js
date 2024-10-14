@@ -16,7 +16,7 @@ const localImage = require('./Logo.png');
 const Login = props => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-  const {setIsAuth} = props;
+  const {setIsAuth, setLoginToken} = props;
   const [postData, setPostData] = useState({username: '', password: ''});
   const [errorMsg, showErrorMsg] = useState('');
   const [showPassword, setShowPassword] = useState(true);
@@ -43,8 +43,10 @@ const Login = props => {
       });
       const statusCode = response.status;
       const result = await response.json();
+      console.log('rrrresult', result);
       if (response.ok) {
         setIsAuth(true);
+        setLoginToken(result.token);
       } else {
         showErrorMsg(JSON.stringify(result.error));
       }

@@ -56,8 +56,8 @@ const MyTabs = () => {
 };
 
 const App = () => {
-  const [isAuth, setIsAuth] = useState(true);
-  const [loginToken, setLoginToken] = useState('');
+  const [isAuth, setIsAuth] = useState(false);
+  const [loginToken, setLoginToken] = useState(null);
   return isAuth ? (
     <NavigationContainer>
       <Stack.Navigator>
@@ -67,7 +67,13 @@ const App = () => {
           options={{headerShown: false}}
         />
         <Stack.Screen name="Profile">
-          {props => <Profile {...props} setIsAuth={setIsAuth} />}
+          {props => (
+            <Profile
+              {...props}
+              setIsAuth={setIsAuth}
+              setLoginToken={setLoginToken}
+            />
+          )}
         </Stack.Screen>
         <Stack.Screen
           name="UpdateProfilePicture"
@@ -81,7 +87,13 @@ const App = () => {
           options={{title: 'Your Response'}}
         />
         <Stack.Screen name="dq" options={{title: "Today's Questionnaire"}}>
-          {props => <LongQuestionnaire {...props} isItDailyQuestions={true} />}
+          {props => (
+            <LongQuestionnaire
+              {...props}
+              isItDailyQuestions={true}
+              loginToken={loginToken}
+            />
+          )}
         </Stack.Screen>
         {/* <Stack.Screen
           name="dq"
@@ -90,9 +102,15 @@ const App = () => {
         /> */}
         <Stack.Screen
           name="LongQuestionnaire"
-          component={LongQuestionnaire}
-          options={{title: 'Your Personalised Questionnare'}}
-        />
+          options={{title: 'Your Personalised Questionnare'}}>
+          {props => (
+            <LongQuestionnaire
+              {...props}
+              isItDailyQuestions={false}
+              loginToken={loginToken}
+            />
+          )}
+        </Stack.Screen>
         <Stack.Screen
           name="LongQuestionnaireResponses"
           component={LongQuestionnaireResponses}
@@ -114,11 +132,24 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Login" options={{headerShown: false}}>
-          {props => <Login {...props} setIsAuth={setIsAuth} />}
+          {props => (
+            <Login
+              {...props}
+              setIsAuth={setIsAuth}
+              setLoginToken={setLoginToken}
+            />
+          )}
         </Stack.Screen>
         <Stack.Screen name="SignUp" component={SignUp} />
+        {/* how to handle user_id ??? */}
         <Stack.Screen name="Verification">
-          {props => <Verification {...props} setIsAuth={setIsAuth} />}
+          {props => (
+            <Verification
+              {...props}
+              setIsAuth={setIsAuth}
+              setLoginToken={setLoginToken}
+            />
+          )}
         </Stack.Screen>
         {/* <Stack.Screen name="Daily" component={Daily} />
         <Stack.Screen

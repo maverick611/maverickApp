@@ -1,13 +1,50 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, Text, TextInput, StyleSheet, Button} from 'react-native';
 
-const takePlaceHolderAndLogoReturnTextInput = (logo, placeHolder) => {
-  return <TextInput placeholder={placeHolder} style={styles.input} />;
+const takePlaceHolderAndLogoReturnTextInput = (
+  logo,
+  placeHolder,
+  stateValue,
+  updateEnteredOTP,
+  index,
+) => {
+  return (
+    <TextInput
+      placeholder={placeHolder}
+      style={styles.input}
+      value={stateValue}
+      onChangeText={text => updateEnteredOTP(text, index)}
+    />
+  );
 };
 
 const Verification = props => {
+  const [otp, SetOtp] = useState({phoneCode: '', emailCode: ''});
+  const [errorMSG, setErrorMSG] = useState('');
   const {setIsAuth} = props;
   const fields = ['Code Sent To Your Phone', 'Code Sent To Your Mail'];
+  const mapper = ['phoneCode', 'emailCode'];
+  const updateEnteredOTP = (text, pm) => {
+    console.log(text);
+    console.log(pm);
+    SetOtp(prev => ({...prev, [mapper[pm]]: text}));
+  };
+  const sendCodesToBE = async () => {
+    setErrorMSG('');
+    const response = await fetch('http://10.0.2.2:3000/confirm_signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(otp),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setIsAuth(true);
+    } else {
+      setErrorMSG(data.error);
+    }
+  };
   return (
     <View
       style={{
@@ -20,6 +57,7 @@ const Verification = props => {
         // justifyContent: 'center',
         // alignItems: 'center',
       }}>
+      {console.log('SetOtp', otp)}
       <View
         style={{
           padding: 10,
@@ -39,12 +77,21 @@ const Verification = props => {
           <View>
             {fields.map((field, index) => (
               <View key={index}>
-                {takePlaceHolderAndLogoReturnTextInput('None', field)}
+                {takePlaceHolderAndLogoReturnTextInput(
+                  'None',
+                  field,
+                  otp[mapper[index]],
+                  updateEnteredOTP,
+                  index,
+                )}
               </View>
             ))}
           </View>
           <View style={{marginTop: 15}}>
-            <Button title="Submit" onPress={() => setIsAuth(true)} />
+            {errorMSG.length > 0 && (
+              <Text style={styles.errorMSG}>{errorMSG}</Text>
+            )}
+            <Button title="Submit" onPress={() => sendCodesToBE()} />
           </View>
         </View>
       </View>
@@ -61,6 +108,9 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: 'white',
     borderRadius: 10,
+  },
+  errorMSG: {
+    color: 'red',
   },
 });
 
