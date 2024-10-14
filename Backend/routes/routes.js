@@ -13,7 +13,7 @@
 
 const express = require('express');
 const router = express.Router();
-const {login, signup, confirm_signup, auth, logout, home, questionnaire, questionnaire_responses, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses} = require('../controllers/controller');
+const {login, signup, confirm_signup, auth, logout, home, questionnaire, questionnaire_responses, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses, daily_reports} = require('../controllers/controller');
 
 // router.post('/signup', signup);
 
@@ -29,6 +29,7 @@ router.get('/get_submission', auth, get_submission)
 router.get('/submission_report', auth, submission_report)
 router.get('/daily_questionnaire', auth, daily_questionnaire)
 router.post('/daily_questionnaire_responses', auth, daily_questionnaire_responses)
+router.get('/daily_reports', auth, daily_reports)
 
 
 
