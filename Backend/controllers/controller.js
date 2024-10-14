@@ -559,22 +559,29 @@ const get_submission = async (req, res) => {
     const { submission_id } = req.body; 
 
     try {
+
         const responsesResult = await pool.query(`
             SELECT 
                 r.question_id, 
                 q.question, 
+                q.question_type AS type,
                 r.answer, 
-                o.options_id AS option_id
+                o.options_id AS option_id,
+                o.options AS option_text
             FROM 
                 responses r
             JOIN 
                 questions q ON r.question_id = q.question_id
             JOIN 
-                options o ON r.answer = o.options
+                (
+                    SELECT DISTINCT ON (question_id, options) options_id, question_id, options 
+                    FROM options 
+                    ORDER BY question_id, options, options_id
+                ) o ON r.question_id = o.question_id
             WHERE 
                 r.submission_id = $1
             ORDER BY 
-                r.question_id
+                r.question_id, o.options_id
         `, [submission_id]);
 
         if (responsesResult.rows.length === 0) {
@@ -584,28 +591,40 @@ const get_submission = async (req, res) => {
         const responseMap = {};
 
         responsesResult.rows.forEach(response => {
-            const { question_id, question, answer, option_id } = response;
+            const { question_id, question, type, answer, option_id, option_text } = response;
 
             if (!responseMap[question_id]) {
                 responseMap[question_id] = {
                     question_id,
                     question,
-                    answers: []
+                    options: [],
+                    type,
+                    answer: null
                 };
             }
 
-            responseMap[question_id].answers.push({
-                option_id,
-                answer
-            });
+            const isOptionAdded = responseMap[question_id].options.some(opt => opt.id === option_id);
+            if (!isOptionAdded) {
+                responseMap[question_id].options.push({
+                    id: option_id,
+                    text: option_text
+                });
+            }
+
+            if (answer === option_text) {
+                responseMap[question_id].answer = {
+                    id: option_id,
+                    text: answer
+                };
+            }
         });
 
-        const responseArray = Object.values(responseMap).map(({ question_id, question, answers }) => ({
+        const responseArray = Object.values(responseMap).map(({ question_id, question, options, type, answer }) => ({
             question_id,
             question,
-            answers: answers.filter((ans, index, self) =>
-                index === self.findIndex(a => a.answer === ans.answer)
-            )
+            options: options.map(opt => ({ id: opt.id, text: opt.text })), // Format options with id and text
+            type,
+            answer
         }));
 
         res.status(200).json(responseArray);
@@ -615,6 +634,58 @@ const get_submission = async (req, res) => {
     }
 };
 
+
+//req body
+
+// {
+//     "submission_id": "f1665bbe-92c9-4a9d-bca6-3ec1fde53d1e"
+// }
+
+
+
+//res body 
+
+
+// [
+//     {
+//         "question_id": 3,
+//         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "options": [
+//             {
+//                 "id": 7,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 8,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 7,
+//             "text": "yes"
+//         }
+//     },
+//     {
+//         "question_id": 16,
+//         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "options": [
+//             {
+//                 "id": 40,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 41,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 41,
+//             "text": "no"
+//         }
+//     }
+// ]
 
 
 const submission_report = async (req, res) => {
@@ -1039,7 +1110,147 @@ const daily_reports = async (req, res) => {
 // ]
 
 
+//retrieves only daily questions submissions
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses, daily_reports};
+const daily_get_submission = async (req, res) => {
+    const { submission_id } = req.body; 
+
+    try {
+        const responsesResult = await pool.query(`
+            SELECT 
+                r.question_id, 
+                q.question, 
+                q.question_type AS type,
+                r.answer, 
+                o.options_id AS option_id,
+                o.options AS option_text
+            FROM 
+                responses r
+            JOIN 
+                questions q ON r.question_id = q.question_id
+            JOIN 
+                (
+                    SELECT DISTINCT ON (question_id, options) options_id, question_id, options 
+                    FROM options 
+                    ORDER BY question_id, options, options_id
+                ) o ON r.question_id = o.question_id
+            JOIN 
+                questions_disease_weightage qdw ON r.question_id = qdw.question_id
+            JOIN 
+                chronic_diseases d ON qdw.disease_id = d.disease_id
+            WHERE 
+                r.submission_id = $1 AND d.disease_name ILIKE '%daily%'
+            ORDER BY 
+                r.question_id, o.options_id
+        `, [submission_id]);
+
+        if (responsesResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No responses found for this submission ID.' });
+        }
+
+        const responseMap = {};
+
+        responsesResult.rows.forEach(response => {
+            const { question_id, question, type, answer, option_id, option_text } = response;
+
+            if (!responseMap[question_id]) {
+                responseMap[question_id] = {
+                    question_id,
+                    question,
+                    options: [],
+                    type,
+                    answer: null
+                };
+            }
+
+            const isOptionAdded = responseMap[question_id].options.some(opt => opt.id === option_id);
+            if (!isOptionAdded) {
+                responseMap[question_id].options.push({
+                    id: option_id,
+                    text: option_text
+                });
+            }
+
+            if (answer === option_text) {
+                responseMap[question_id].answer = {
+                    id: option_id,
+                    text: answer
+                };
+            }
+        });
+
+        const responseArray = Object.values(responseMap).map(({ question_id, question, options, type, answer }) => ({
+            question_id,
+            question,
+            options: options.map(opt => ({ id: opt.id, text: opt.text })), 
+            type,
+            answer
+        }));
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+//req body
+
+// {
+//     "submission_id": "f1665bbe-92c9-4a9d-bca6-3ec1fde53d1e"
+// }
+
+
+
+//res body 
+
+
+// [
+//     {
+//         "question_id": 3,
+//         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "options": [
+//             {
+//                 "id": 7,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 8,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 7,
+//             "text": "yes"
+//         }
+//     },
+//     {
+//         "question_id": 16,
+//         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "options": [
+//             {
+//                 "id": 40,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 41,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 41,
+//             "text": "no"
+//         }
+//     }
+// ]
+
+
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission};
 
 
