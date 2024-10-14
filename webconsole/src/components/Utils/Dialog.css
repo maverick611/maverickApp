@@ -2,3 +2,7 @@
     margin: 0.5rem;
     padding-top: 1.5rem;
 }
+
+.dialog-btn:hover {
+    color: white;
+}

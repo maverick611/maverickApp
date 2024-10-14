@@ -16,20 +16,35 @@ const Profile = (props) => {
     const [userInfo, setUserInfo] = useState(state.userInfo);
     const [dialog, setDialog] = useState({ open: false, message: '' });
     const [alert, setAlert] = useState({ show: false, message: '', type: '' });
-
+    const handleChangeInFirstName = async (e) => {
+        setUserInfo({ ...userInfo, first_name: e.target.value })
+    }
+    const handleChangeInLastName = async (e) => {
+        setUserInfo({ ...userInfo, last_name: e.target.value })
+    }
+    const handleChangeInUsername = async (e) => {
+        setUserInfo({ ...userInfo, username: e.target.value })
+    }
+    const handleChangeInPhone = async (e) => {
+        setUserInfo({ ...userInfo, phone: e.target.value })
+    }
+    const handleChangeInEmail = async (e) => {
+        setUserInfo({ ...userInfo, email: e.target.value })
+    }
     const handlePersonalDetailsUpdate = async (e) => {
         e.preventDefault();
         const data = new FormData(e.target);
         const requestBody = {
-            firstName: data.get('firstName'),
+            first_name: data.get('first_name'),
             username: data.get('username'),
-            lastName: data.get('lastName'),
-            dob: data.get('dob'),
+            last_name: data.get('last_name'),
             phone: data.get('phone'),
             email: data.get('email'),
+            updated_by: data.get('username'),
+            password: "admin456"
         };
         try {
-            const response = await fetch('/update_passowrd', {
+            const response = await fetch('http://localhost:3030/adminPersonalDetails', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -38,6 +53,7 @@ const Profile = (props) => {
             });
 
             if (response.ok) {
+                setUserInfo(requestBody);
                 setAlert({ show: true, message: "Personal details updated successfully!", type: "success" });
             } else {
                 const data = await response.json();
@@ -82,9 +98,9 @@ const Profile = (props) => {
     };
     return (
         <div className="profile-container">
-            <NavBar userLoggesIn="true" />
+            <NavBar userLoggesIn="true" username={userInfo.username} />
             <div className="profile-content">
-                <SideBar access="true" tab="profile" />
+                <SideBar access="true" tab="profile" username={userInfo.username} />
                 <div className='profile-section'>
                     <div className="profile-info">
                         <div className='center-user'><Avatar sx={{ width: 72, height: 72 }}>A</Avatar></div>
@@ -93,11 +109,11 @@ const Profile = (props) => {
                             Update Password
                         </button>
                     </div>
-                    {alert.show && <Alert icon={<CheckIcon fontSize="inherit" />} variant="outlined" severity={alert.type}>
+                    {alert.show && <Alert className="profile-form" icon={<CheckIcon fontSize="inherit" />} onClose={() => setAlert({ show: false, message: '' })} variant="outlined" severity={alert.type}>
                         {alert.message}
                     </Alert>}
                     {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} no={"Cancel"} yes={"Save"} action={handlePasswordUpdate} cancel={handleCancelDelete} >
-                        <form className='profile-form-password' onSubmit={handlePasswordUpdate}>
+                        <form className='profile-form-password'>
                             <div>
                                 <div className="form-group">
                                     <label htmlFor="currentPassword">Current Password</label>
@@ -123,31 +139,31 @@ const Profile = (props) => {
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label htmlFor="firstName">First Name</label>
-                                        <input className="form-control" type="text" value="Dr.David" id="firstName" name="firstName" />
+                                        <input className="form-control" type="text" value={userInfo.first_name} id="firstName" name="firstName" onChange={handleChangeInFirstName} />
                                     </div>
-                                    <div className="form-group">
-                                        <label htmlFor="username">Username</label>
-                                        <input type="text" id="username" value="david" name="username" />
-                                    </div>
-                                </div>
-                                <div className="form-row">
                                     <div className="form-group">
                                         <label htmlFor="lastName">Last Name</label>
-                                        <input type="text" id="lastName" value="K" name="lastName" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="dob">Date of Birth</label>
-                                        <input type="date" id="dob" name="dob" />
+                                        <input type="text" id="lastName" value={userInfo.last_name} name="lastName" onChange={handleChangeInLastName} />
                                     </div>
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group">
-                                        <label htmlFor="phone">Phone Number</label>
-                                        <input type="tel" id="phone" name="phone" />
+                                        <label htmlFor="username">Username</label>
+                                        <input type="text" id="username" value={userInfo.username} name="username" onChange={handleChangeInUsername} />
                                     </div>
                                     <div className="form-group">
+                                        <label htmlFor="phone">Phone Number</label>
+                                        <input type="tel" id="phone" name="phone" value={userInfo.phone} onChange={handleChangeInPhone} />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
                                         <label htmlFor="email">Email</label>
-                                        <input type="email" id="email" name="email" />
+                                        <input type="email" id="email" name="email" value={userInfo.email} onChange={handleChangeInEmail} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="profilePicture">Profile Picture</label>
+                                        <input type="file" id="pp" name="profilepic" />
                                     </div>
                                 </div>
                                 <div className='profile-info'>
@@ -158,7 +174,7 @@ const Profile = (props) => {
                     </Card>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

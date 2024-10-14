@@ -61,6 +61,7 @@
 .btn-cancel:hover,
 .btn-submit:hover {
   background-color: #2b6558;
+  color: white;
 }
 
 /* Form styling */

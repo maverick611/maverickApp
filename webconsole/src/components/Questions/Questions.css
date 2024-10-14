@@ -1,6 +1,5 @@
 .question-filters {
     display: flex;
-    justify-content: space-between;
 }
 
 .question-dropdown {
@@ -9,6 +8,24 @@
 
 .question-search {
     margin-left: auto;
+}
+
+.disease-section {
+    margin: 1rem;
+}
+
+.answers-input {
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+}
+
+.answers-btn {
+    margin: 1rem;
+    width: 2rem;
+}
+
+.full-width {
+    width: 100%;
 }
 
 .popup-overlay {
@@ -25,6 +42,7 @@
 .popup-content {
     display: flex;
     flex-direction: column;
+    overflow-y: scroll;
 }
 
 .popup-content div {
@@ -39,10 +57,6 @@
     display: flex;
 }
 
-.input-question {
-    margin: 0;
-}
-
 .question-btn-cancel {
     padding: 8px;
     background-color: #ccc;
@@ -51,7 +65,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-right: 0%;
+    margin: 0.5rem;
 }
 
 .question-btn-submit {
@@ -62,4 +76,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    margin-right: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }

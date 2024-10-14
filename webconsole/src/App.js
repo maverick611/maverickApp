@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Login from './components/Login/Login';
@@ -9,17 +9,23 @@ import Questions from './components/Questions/Questions';
 import Resources from './components/Resources/Resources';
 
 function App() {
+  const [userInfo, setUserInfo] = useState({});
+
+  const updateUserInfo = (userInfo) => {
+    console.log("App.js", userInfo)
+    setUserInfo(userInfo);
+  }
   return (
     <Router>
       <div className="App">
         <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/sign-up" element={<Signup />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/resources" element={<Resources tab="resources"/>} />
-            <Route path="/questions" element={<Questions tab="questions"/>} />
-            <Route path="/daily-questions" element={<Questions isDaily="true" tab="daily"/>} />
+          <Route path="/" element={<Login updateUser={updateUserInfo} />} />
+          <Route path="/sign-up" element={<Signup userInfo={userInfo} />} />
+          <Route path="/users" element={<Users userInfo={userInfo} />} />
+          <Route path="/profile" element={<Profile userInfo={userInfo} />} />
+          <Route path="/resources" element={<Resources tab="resources" userInfo={userInfo} />} />
+          <Route path="/questions" element={<Questions tab="questions" userInfo={userInfo} />} />
+          <Route path="/daily-questions" element={<Questions isDaily="true" tab="daily" userInfo={userInfo} />} />
         </Routes>
       </div>
     </Router>

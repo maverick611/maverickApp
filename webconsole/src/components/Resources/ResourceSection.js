@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
 import ResourceItem from './ResourceItem';
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
+import { Paper, Typography, Button, Link, Box, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const ResourceSection = ({ title, resources }) => {
 
-  const [minimized, setMinimized] = useState(false);
-  return (
-    <div className="resource-section">
-      <div className={`card ${minimized ? 'minimized' : ''}`}>
-            <div className="card-header">
-                <h2>{title}</h2>
-                <div>
-                    <button >
-                        <span className='m-1'>{' + '}</span>
-                    </button>
-                    <button onClick={() => setMinimized(!minimized)}>
-                        {minimized ? <IoIosArrowDown/> : <IoIosArrowUp />}
-                    </button>
-                </div>
-            </div>
+    const [minimized, setMinimized] = useState(false);
+    return (
+        <div className="resource-section">
             {resources.map((resource, index) => (
-                <ResourceItem
-                key={index}
-                title={resource.title}
-                description={resource.description}
-                link={resource.link}
-                minimized={minimized}
-                />
+                <Accordion key={index} defaultExpanded>
+                    <AccordionSummary
+                        expandIcon={<Button variant="contained" color="success" size="small">
+                            <ExpandMoreIcon />
+                        </Button>}
+                        aria-controls={`panel${index}-content`}
+                        id={`panel${index}-header`}
+                        sx={{ backgroundColor: '#d3e6c6' }}
+                    >
+                        <Typography variant="h5" sx={{ color: '#388e3c' }}><strong>{resource.category}</strong></Typography>
+                        <Box ml="auto">
+                            <Button variant="contained" color="success" size="small" sx={{ marginRight: 1 }}>
+                                <AddIcon />
+                            </Button>
+
+                        </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        {resource.items.map((item, index) => <ResourceItem key={index} item={item} />)}
+                    </AccordionDetails>
+                </Accordion>
             ))}
         </div>
-    </div>
-  );
+    );
 };
 
 export default ResourceSection;

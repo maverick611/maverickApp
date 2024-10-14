@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import NavBar from '../Utils/NavBar';
 import SideBar from '../Utils/SideBar';
 import { FaSearch } from 'react-icons/fa';
@@ -7,43 +7,26 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import './Questions.css';
 import DialogComponent from '../Utils/Dialog';
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Paper, Select } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+import { useLocation } from 'react-router-dom';
 
 const Questions = (props) => {
-    const [questions, setQuestions] = useState([
-        { question_id: 1, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 2, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 3, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 4, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 5, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 6, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 7, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 8, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 9, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 10, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 11, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 12, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-    ]);
-    const [allQuestions, setAllQuestions] = useState([
-        { question_id: 1, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 2, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 3, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 4, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 5, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 6, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 7, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 8, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 9, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 10, question: "Do you sit for more than 4 hours a day?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 11, question: "Have you been diagnosed with high blood pressure?", disease: "Heart", tye: "single-select", options: { Yes: 0, No: 1 } },
-        { question_id: 12, question: "Have you been diagnosed with prediabetes or type 2 diabetes?", disease: "Diabetes", tye: "single-select", options: { Yes: 0, No: 1 } },
-    ]);
-    const allDiseases = [...new Set(allQuestions.map(q => q.disease))]
+    const location = useLocation();
+    const paginationModel = { page: 0, pageSize: 15 };
+
+    const [questions, setQuestions] = useState([]);
+    const [allQuestions, setAllQuestions] = useState([]);
+    const [allDiseases, setAllDiseases] = useState([]);
     const [editQuestion, setEditQuestion] = useState(null);
     const [editedValue, setEditedValue] = useState("");
+    const inputRef = useRef(null);
+
+    const [dialogDelete, setDialogDelete] = useState({ open: false, message: '' });
+
+    const [newUser, setNewUser] = useState(null);
     const [popupVisible, setPopupVisible] = useState(null);
 
-    const [newUser, setNewUser] = useState("");
     const [viewOptions, setViewOptions] = useState(null);
 
     const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
@@ -53,23 +36,101 @@ const Questions = (props) => {
 
     const BarStyle = { width: "20rem", background: "white", border: "1px solid", margin: "0.5rem", padding: "0.5rem" };
 
+    useEffect(() => {
+        const pathSplits = location.pathname.split('/')
+        const questionType = pathSplits[pathSplits.length - 1]
+        getAllQuestionsAndDiseases(questionType);
+    }, [location]);
+
+    const rows = questions.map(q => {
+        q.id = q.question_id;
+        return q;
+    });
+
+    const getDiseases = (data, questionType) => {
+        const diseaseMap = new Map();
+
+        data.forEach(question => {
+            question.diseases.forEach(disease => {
+                if (!diseaseMap.has(disease.disease_id)) {
+                    diseaseMap.set(disease.disease_id, disease.disease_name);
+                }
+            });
+        });
+        if (questionType.includes('daily')) {
+            setAllDiseases(Array.from(diseaseMap).filter(([id, name]) => name === 'daily').map(([id, name]) => ({ disease_id: id, disease_name: name })));
+            console.log(allDiseases)
+        }
+        else {
+            setAllDiseases(Array.from(diseaseMap).filter(([id, name]) => name !== 'daily').map(([id, name]) => ({ disease_id: id, disease_name: name })));
+        }
+    };
+
+    const getAllQuestionsAndDiseases = async (questionsType) => {
+        try {
+            const response = await fetch('http://localhost:3030/getQuestionsWithDetails', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const questions = data.filter(question => {
+                    const diseases = question.diseases;
+                    if (!questionsType.includes('daily')) {
+                        return diseases.length > 1 || !diseases.every(disease => disease.disease_name === 'daily');
+                    }
+                    return diseases.some(disease => disease.disease_name === 'daily');
+                });
+                setQuestions(questions);
+                setAllQuestions(questions);
+                getDiseases(questions, questionsType);
+            } else {
+                setAlert({ show: true, message: "Failed to get all questions", type: "error" });
+            }
+        } catch (error) {
+            console.log(error)
+            setAlert({ show: true, message: "Error fetching all questions", type: "error" });
+        }
+    };
+
     const handleDiseaseChange = (e) => {
-        const updatedQuestions = e.target.value === 'ALL' ? allQuestions : allQuestions.filter(question => question.disease === e.target.value);
+        const updatedQuestions = e.target.value === 'ALL' ? allQuestions : allQuestions.filter(question =>
+            question.diseases.some(disease => disease.disease_id === e.target.value));
         setQuestions(updatedQuestions);
     }
-    const deleteQuestion = (id) => {
-        const updatedQuestions = questions.filter(question => question.question_id !== id);
-        // Add delet api here
-        setQuestions(updatedQuestions);
-        setAlert({ show: true, message: "Question deleted successfully!", type: "success" });
+
+    const deleteQuestion = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:3030/deleteQuestion/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const updatedQuestions = questions.filter(question => question.question_id !== id);
+                setQuestions(updatedQuestions);
+                setNewUser("")
+                setAlert({ show: true, message: "Question deleted successfully!", type: "success" });
+            } else {
+                setAlert({ show: true, message: "Failed to delete question", type: "error" });
+            }
+        } catch (error) {
+            console.error("Error revoking user:", error);
+            setAlert({ show: true, message: "Error in deleting question", type: "error" });
+        }
     }
 
     const handleDelete = (question) => {
-        setDialog({ open: true, message: `Are you sure you want to delete "${question.question}" question?`, data: question.question_id });
+        setDialogDelete({ open: true, message: `Are you sure you want to delete "${question.question}" question?`, data: question.question_id });
     };
 
     const handleCancelDelete = () => {
-        setDialog({ open: false, message: "" });
+        setDialogDelete({ open: false, message: "" });
     };
 
     const handleEdit = (question) => {
@@ -93,31 +154,127 @@ const Questions = (props) => {
     // Function to add a new user/question
     const addUser = () => {
         const newId = questions.length + 1;
-        const newQuestion = { id: newId, description: newUser, type: "Dr. David" };
+        const newQuestion = { id: newId, description: "", type: "Dr. David" };
         setQuestions([...questions, newQuestion]);
-        setNewUser("");
         alert("User added successfully!");
     };
 
-    const handleView = (question, index) => {
-        const linkElement = viewLinkRefs.current[index];
-        const rect = linkElement.getBoundingClientRect();
-        setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
-        setPopupVisible(popupVisible === question.question_id ? null : question.question_id);
-        setViewOptions(question.options)
+    const handleView = (question) => {
+        setPopupVisible(question);
+        const initialWeights = {};
+        question.diseases.forEach(disease => {
+            disease.options.forEach(option => {
+                initialWeights[`${disease.disease_id}-${option.options_id}`] = option.weightage;
+            });
+        });
+        console.log(initialWeights)
+        // const linkElement = viewLinkRefs.current[index];
+        // const rect = linkElement.getBoundingClientRect();
+        // setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
+        // setPopupVisible(popupVisible === question.question_id ? null : question.question_id);
+        setViewOptions(initialWeights)
     };
 
     const handleAdd = () => {
         setDialog({ open: true, message: `Add possible answers to "${editedValue}" question`, data: 'addOptions' });
     };
-    const updateWeight = (question, option, increment) => {
-        if (viewOptions) {
-            setViewOptions((prevOptions) => ({
-                ...prevOptions,
-                [option]: increment ? prevOptions[option] + 1 : Math.max(prevOptions[option] - 1, 0),
-            }));
-        }
+    const updateWeight = (diseaseId, optionId, newWeight) => {
+        // if (viewOptions) {
+        //     setViewOptions((prevOptions) => ({
+        //         ...prevOptions,
+        //         [option]: increment ? prevOptions[option] + 1 : Math.max(prevOptions[option] - 1, 0),
+        //     }));
+        // }
+        setViewOptions(prevWeights => ({
+            ...prevWeights,
+            [`${diseaseId}-${optionId}`]: newWeight
+        }));
     };
+    const handleCancelWeights = () => {
+        setPopupVisible(null);
+    }
+    const saveWeightChanges = async (question) => {
+        // api
+        const x = Object.keys(viewOptions)[0].split('-');
+        const requestBody = {
+            "question_id": question.question_id,
+            "disease_id": x[0],
+            "options_id": x[1],
+            "weightage": viewOptions[`${x[0]}-${x[1]}`]
+        }
+        console.log('request body', requestBody)
+        try {
+            const response = await fetch(`http://localhost:3030/editOption/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+                setAlert({ show: true, message: "Answers updated successfully!", type: "success" });
+            } else {
+                setAlert({ show: true, message: "Failed to update answers", type: "error" });
+            }
+        } catch (error) {
+            console.error("Error revoking user:", error);
+            setAlert({ show: true, message: "Error in update answers", type: "error" });
+        }
+        // diseases.forEach(disease => {
+        //     disease.options.forEach(option => {
+        //         const key = `${disease.disease_id}-${option.options_id}`;
+        //         if (tempWeights[key] !== undefined) {
+        //             option.weightage = tempWeights[key];
+        //         }
+        //     });
+        // });
+        setPopupVisible(null); // Close the dialog after saving
+    };
+    const columns: GridColDef[] = [
+        {
+            field: 'question',
+            headerName: 'Questions',
+            sortable: false,
+            flex: 2,
+            renderCell: (question) => {
+                return editQuestion && editQuestion.question_id === question.id ?
+                    <div className='edit-question'>
+                        <input className='input-question' type="text" id="question"
+                            name="question" value={editedValue}
+                            onChange={handleInputChange} />
+                        <button type="cancel" className="question-btn-cancel" onClick={() => setEditQuestion(null)}><CloseIcon fontSize="inherit" /></button>
+                        <button type="submit" className="question-btn-submit" onClick={saveEdit}><CheckIcon fontSize="inherit" /></button>
+                    </div> : question.question
+            },
+        },
+        {
+            field: 'disease',
+            headerName: 'Diseases',
+            sortable: false,
+            flex: 1.1,
+            valueGetter: (value, row) => {
+                const diseaseNames = row.diseases.map(disease => disease.disease_name);
+                return diseaseNames.join(', ');
+            }
+        },
+        {
+            field: 'answers',
+            headerName: 'Answers',
+            sortable: false,
+            flex: 0.3,
+            renderCell: (question) => {
+                return <a
+                    style={{ textDecoration: "underline", cursor: "pointer" }}
+                    onClick={() => handleView(question.row)}
+                >
+                    View
+                </a>
+            },
+        },
+        { field: 'action', headerName: 'Action', flex: 0.3, renderCell: (question) => <a style={{ color: "green", cursor: "pointer" }} onClick={() => handleEdit(question.row)}>Edit</a> },
+        { field: 'delete', headerName: 'Delete', flex: 0.3, renderCell: (question) => <a style={{ color: "red", cursor: "pointer" }} onClick={() => handleDelete(question.row)}>Delete</a> },
+    ];
 
     return (
         <div className="user-container">
@@ -125,10 +282,10 @@ const Questions = (props) => {
             <div className="user-content">
                 <SideBar access="true" tab={props.tab} />
                 <div className="user-main-content">
-                    {alert.show && <Alert icon={<CheckIcon fontSize="inherit" />} variant="outlined" severity={alert.type}>
+                    {alert.show && <Alert icon={<CheckIcon fontSize="inherit" />} variant="outlined" onClose={() => setAlert({ show: false })} severity={alert.type}>
                         {alert.message}
                     </Alert>}
-                    {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} data={dialog.data} action={deleteQuestion} cancel={handleCancelDelete} />}
+                    {dialogDelete.open && <DialogComponent openDialog={dialogDelete.open} alertMessage={dialogDelete.message} data={dialogDelete.data} no={"No"} yes={"Yes"} action={deleteQuestion} cancel={handleCancelDelete} />}
                     <div className='question-filters'>
                         <FormControl variant="standard" sx={{ m: 0, minWidth: 120 }}>
                             <InputLabel id="demo-simple-select-standard-label">Disease</InputLabel>
@@ -141,7 +298,7 @@ const Questions = (props) => {
                                 <MenuItem key="all" value="ALL">
                                     <em>All</em>
                                 </MenuItem>
-                                {allDiseases.map(disease => <MenuItem key={disease} value={disease}>{disease}</MenuItem>)}
+                                {allDiseases.map(disease => <MenuItem key={disease.disease_id} value={disease.disease_id}>{disease.disease_name}</MenuItem>)}
                             </Select>
                         </FormControl>
                         <span className='question-search'>
@@ -153,7 +310,39 @@ const Questions = (props) => {
                             />
                         </span>
                     </div>
-
+                    {popupVisible && (
+                        <DialogComponent openDialog={popupVisible !== null} alertMessage={`Answers for Question "${popupVisible.question}" with different diseases`} data={popupVisible} no={"Cancel"} yes={"Save"} action={saveWeightChanges} cancel={handleCancelWeights}>
+                            <div className="popup-content">
+                                {popupVisible.diseases.map(disease => (
+                                    <div key={disease.disease_id} className='disease-section'>
+                                        <h3>{disease.disease_name} <button >Add Answer</button></h3>
+                                        {disease.options.map(option => (
+                                            <div key={option.options_id} className='question-filters'>
+                                                <label className='full-width'>
+                                                    {option.option_text.toUpperCase()}:
+                                                    <input
+                                                        className='answers-input'
+                                                        type="number"
+                                                        value={viewOptions[`${disease.disease_id}-${option.options_id}`]}
+                                                        onChange={(e) => updateWeight(disease.disease_id, option.options_id, parseInt(e.target.value))}
+                                                    />
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </DialogComponent>
+                    )}
+                    <Paper sx={{ height: 700, width: '100%' }}>
+                        <DataGrid
+                            rows={rows}
+                            columns={columns}
+                            initialState={{ pagination: { paginationModel } }}
+                            pageSizeOptions={[15, 20, 25]}
+                            sx={{ border: 0 }}
+                        />
+                    </Paper>
                     <table style={{ backgroundColor: "white" }}>
                         <thead>
                             <tr>
@@ -183,7 +372,7 @@ const Questions = (props) => {
                                         <a
                                             ref={(el) => (viewLinkRefs.current[index] = el)}
                                             style={{ textDecoration: "underline", cursor: "pointer" }}
-                                            onClick={() => handleView(question, index)}
+                                            onClick={() => handleView(question)}
                                         >
                                             View
                                         </a>

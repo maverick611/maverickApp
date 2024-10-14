@@ -1,69 +1,72 @@
-.resource-container {    
-    display: flex;
-    flex-direction: column;
-    font-family: Arial, sans-serif;
+.resource-container {
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+  overflow-y: scroll;
 }
-  
+
 .resource-content {
-    display: flex;
-    flex-grow: 1;
+  display: flex;
+  flex-grow: 1;
 }
 
 .resource-main-content {
-    margin-top: 4rem;
-    margin-left: 2rem;
-    margin-right: 2rem;
-    width: 100%;
-  }
-  .resource-item {
-    text-align: left;  
-  }
-  .resource-actions {
-    margin-top: 10px;
-  }
-  
-  button {
-    margin-right: 10px;
-    padding: 5px 10px;
-    background-color: #007c72;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #005f58;
-  }
+  margin-top: 4rem;
+  margin-left: 2rem;
+  margin-right: 2rem;
+  width: 100%;
+}
 
-  .card {
-    margin-bottom: 10px;
-  }
-  
-  .card-header {
-    border:  1px solid #007c72;
-    display: flex;
-    background-color: #d3e6c6;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-  }
-  
-  .card-body {
-    background-color: white;
-    border-left: 1px solid #007c72;
-    border-right: 1px solid #007c72;
-    border-bottom: 1px solid #007c72;
-    align-items: left;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
+.resource-item {
+  text-align: left;
+}
 
-  .minimized .card-body {
-    display: none;
-  }
+.resource-actions {
+  margin-top: 10px;
+}
 
-  .text {
-    flex-grow: 1;
-  }
+button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #007c72;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #005f58;
+}
+
+.card {
+  margin-bottom: 10px;
+}
+
+.card-header {
+  border: 1px solid #007c72;
+  display: flex;
+  background-color: #d3e6c6;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.card-body {
+  background-color: white;
+  border-left: 1px solid #007c72;
+  border-right: 1px solid #007c72;
+  border-bottom: 1px solid #007c72;
+  align-items: left;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.minimized .card-body {
+  display: none;
+}
+
+.text {
+  flex-grow: 1;
+}

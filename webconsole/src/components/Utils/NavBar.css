@@ -8,6 +8,10 @@
   height: 60px;
 }
 
+.nav-btns {
+  display: flex
+}
+
 /* Left logo container */
 .navbar-logo {
   display: flex;
@@ -44,6 +48,7 @@
 .navbar-links .login-btn {
   display: flex;
   color: white;
+  margin-left: 1rem;
 }
 
 .navbar-links .login-btn span {
@@ -53,4 +58,10 @@
 .navbar-links .login-btn:hover {
   background-color: #639032;
   /* Slightly darker shade on hover */
+}
+
+.nav-user {
+  font-size: larger;
+  margin-top: 0.5rem;
+  margin-right: 0.2rem;
 }

@@ -12,6 +12,7 @@ const DialogComponent = (props) => {
 
     const handleYes = () => {
         setOpen(false);
+        console.log(props.data)
         props.action(props.data);
     };
 
@@ -64,8 +65,8 @@ const DialogComponent = (props) => {
             </DialogContent> : null
             }
             <DialogActions>
-                <Button onClick={handleNo}>{props.no}</Button>
-                <Button onClick={handleYes} autoFocus>
+                <Button className="dialog-btn" onClick={handleNo}>{props.no}</Button>
+                <Button className="dialog-btn" onClick={handleYes} autoFocus>
                     {props.yes}
                 </Button>
             </DialogActions>

@@ -5,14 +5,14 @@ import UserTable from './UserTable';
 //import Pagination from './components/Pagination';
 import './Users.css';
 
-const Users = () => {
+const Users = (props) => {
   return (
     <div className="user-container">
       <NavBar userLoggesIn="true" />
       <div className="user-content">
         <SideBar access="true" tab="users" />
         <div className="user-main-content">
-          <UserTable />
+          <UserTable username={props.username} />
         </div>
       </div>
     </div>
