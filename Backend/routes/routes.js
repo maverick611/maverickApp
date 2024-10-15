@@ -16,7 +16,8 @@ const {
     addOption,
     editOption,
     getdailyQuestions,
-    getAdminByUsername
+    getAdminByUsername,
+    updatePassword
 } = require('../controllers/controller');  // Import your controllers
 
 router.post('/addResource', addResource);
@@ -35,5 +36,6 @@ router.post('/addOption', addOption);
 router.put('/editOption', editOption);
 router.get('/getdailyQuestions', getdailyQuestions);
 router.get('/getAdmin/:username', getAdminByUsername);
+router.put('/updatePassword', updatePassword);
 
 module.exports = router;
