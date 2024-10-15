@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import ResourceItem from './ResourceItem';
-import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
-import { Paper, Typography, Button, Link, Box, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import "./Resources.css"
 
 const ResourceSection = ({ title, resources }) => {
 
     const [minimized, setMinimized] = useState(false);
     return (
         <div className="resource-section">
+            <h2>Resources</h2>
             {resources.map((resource, index) => (
-                <Accordion key={index} defaultExpanded>
+                <Accordion key={index} className="card">
                     <AccordionSummary
                         expandIcon={<Button variant="contained" color="success" size="small">
                             <ExpandMoreIcon />

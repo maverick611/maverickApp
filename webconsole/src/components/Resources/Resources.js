@@ -26,11 +26,32 @@ const Resources = () => {
       items: []
     }
   ];
+
   const [allResources, setAllResources] = useState([]);
 
   useEffect(() => {
     getAllResources();
   }, []);
+  const transformData = (data) => {
+    const groupedData = data.reduce((acc, item) => {
+      if (!acc[item.disease]) {
+        acc[item.disease] = [];
+      }
+
+      acc[item.disease].push({
+        title: item.resources_title,
+        description: item.resources_desc,
+        link: item.resource_link
+      });
+
+      return acc;
+    }, {});
+
+    return Object.entries(groupedData).map(([category, items]) => ({
+      category,
+      items
+    }));
+  };
   const getAllResources = async () => {
     try {
       const response = await fetch('http://localhost:3030/fetchResources', {
@@ -42,8 +63,9 @@ const Resources = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data)
-        setAllResources(data);
+        const resources = transformData(data);
+        console.log(resources)
+        setAllResources(resources);
       }
     } catch (error) {
       console.log(error)
@@ -55,7 +77,7 @@ const Resources = () => {
       <div className="resource-content">
         <SideBar access="true" tab="resources" />
         <div className="resource-main-content">
-          <ResourceSection resources={resources} />
+          <ResourceSection resources={allResources} />
         </div>
       </div>
     </div>
