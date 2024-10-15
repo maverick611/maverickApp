@@ -102,6 +102,11 @@ const Questions = (props) => {
         setQuestions(updatedQuestions);
     }
 
+    const handleSearch = (e) => {
+        const updatedQuestions = allQuestions.filter(question =>
+            question.question.includes(e.target.value));
+        setQuestions(updatedQuestions);
+    }
     const deleteQuestion = async (id) => {
         try {
             const response = await fetch(`http://localhost:3030/deleteQuestion/${id}`, {
@@ -282,7 +287,7 @@ const Questions = (props) => {
             <div className="user-content">
                 <SideBar access="true" tab={props.tab} />
                 <div className="user-main-content">
-                    {alert.show && <Alert icon={<CheckIcon fontSize="inherit" />} variant="outlined" onClose={() => setAlert({ show: false })} severity={alert.type}>
+                    {alert.show && <Alert variant="outlined" onClose={() => setAlert({ show: false })} severity={alert.type}>
                         {alert.message}
                     </Alert>}
                     {dialogDelete.open && <DialogComponent openDialog={dialogDelete.open} alertMessage={dialogDelete.message} data={dialogDelete.data} no={"No"} yes={"Yes"} action={deleteQuestion} cancel={handleCancelDelete} />}
@@ -307,6 +312,7 @@ const Questions = (props) => {
                                 style={BarStyle}
                                 key="search-bar"
                                 placeholder={"search with keywords"}
+                                onChange={handleSearch}
                             />
                         </span>
                     </div>

@@ -6,7 +6,6 @@ import CardContent from '@mui/material/CardContent';
 import Avatar from '@mui/material/Avatar';
 import './Profile.css';
 import { useLocation } from 'react-router-dom';
-import CheckIcon from '@mui/icons-material/Check';
 import DialogComponent from '../Utils/Dialog';
 import { Alert } from '@mui/material';
 
@@ -109,7 +108,7 @@ const Profile = (props) => {
                             Update Password
                         </button>
                     </div>
-                    {alert.show && <Alert className="profile-form" icon={<CheckIcon fontSize="inherit" />} onClose={() => setAlert({ show: false, message: '' })} variant="outlined" severity={alert.type}>
+                    {alert.show && <Alert className="profile-form" onClose={() => setAlert({ show: false, message: '' })} variant="outlined" severity={alert.type}>
                         {alert.message}
                     </Alert>}
                     {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} no={"Cancel"} yes={"Save"} action={handlePasswordUpdate} cancel={handleCancelDelete} >
