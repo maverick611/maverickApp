@@ -1250,7 +1250,174 @@ const daily_get_submission = async (req, res) => {
 
 
 
+//get personal information of a user
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission};
+const get_personal_info = async (req, res) => {
+    const user_id = req.userId; 
+
+    try {
+        const userResult = await pool.query(`
+            SELECT 
+                first_name, 
+                last_name, 
+                username, 
+                email, 
+                phone AS phone_number, 
+                TO_CHAR(dob, 'YYYY-MM-DD') AS dob
+            FROM 
+                users
+            WHERE 
+                user_id = $1
+        `, [user_id]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userInfo = userResult.rows[0];
+        res.status(200).json(userInfo);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+//req body
+
+//just auth token
+
+//res body
+
+// {
+//     "first_name": "dummy_firstName_6",
+//     "last_name": "dummy_lastName_6",
+//     "username": "dummy_username_6",
+//     "email": "dummy_6@gmail.com",
+//     "phone_number": "+1 716-555-0000",
+//     "dob": "1990-01-01"
+// }
+
+
+
+// let temporaryUserUpdates = {}; 
+
+// const update_personal_info = async (req, res) => {
+//     const user_id = req.userId;
+//     const { first_name, last_name, username, email, password, phone_number, dob } = req.body;
+
+//     try {
+//         const currentUserResult = await pool.query(`
+//             SELECT email, phone AS number, password 
+//             FROM users 
+//             WHERE user_id = $1
+//         `, [user_id]);
+
+//         if (currentUserResult.rows.length === 0) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         const currentUser = currentUserResult.rows[0];
+//         console.log('Current User:', currentUser); 
+//         console.log('Incoming Request:', req.body); 
+
+//         let requiresConfirmation = false;
+
+//         const updates = {
+//             first_name,
+//             last_name,
+//             username,
+//             dob
+//         };
+
+//         if (email && email !== currentUser.email) {
+//             updates.email = email;
+//             requiresConfirmation = true;
+//         }
+//         if (phone_number && phone_number !== currentUser.number) {
+//             updates.number = phone_number;
+//             requiresConfirmation = true;
+//         }
+//         if (password) {
+//             const hashedPassword = await bcrypt.hash(password, 10);
+//             if (hashedPassword !== currentUser.password) {
+//                 updates.password = hashedPassword;
+//                 requiresConfirmation = true;
+//             }
+//         }
+
+//         if (requiresConfirmation) {
+//             temporaryUserUpdates[user_id] = updates;
+
+//             const confirmationCodes = {
+//                 phoneCode: "123456",
+//                 emailCode: "654321"
+//             };
+
+//             console.log('Confirmation codes sent to email and phone:', confirmationCodes);
+
+//             return res.status(409).json({ message: 'Confirmation needed for email, phone, or password changes.' });
+//         }
+
+//         await pool.query(`
+//             UPDATE users 
+//             SET first_name = $1, last_name = $2, username = $3, dob = $4
+//             WHERE user_id = $5
+//         `, [first_name, last_name, username, dob, user_id]);
+
+//         res.status(200).json({ message: 'Personal information updated successfully.' });
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).json({ error: 'Server error' });
+//     }
+// };
+
+
+
+// const confirm_personal_changes = async (req, res) => {
+//     const user_id = req.userId; 
+//     const { phoneCode, emailCode } = req.body;
+
+//     const confirmationCodes = {
+//         phoneCode: "123456",
+//         emailCode: "654321" 
+//     };
+
+//     if (phoneCode === confirmationCodes.phoneCode && emailCode === confirmationCodes.emailCode) {
+
+//         const updates = temporaryUserUpdates[user_id];
+
+//         if (!updates) {
+//             return res.status(400).json({ error: "No updates found or already confirmed." });
+//         }
+
+//         try {
+
+//             await pool.query(`
+//                 UPDATE users 
+//                 SET email = $1, phone = $2, password = $3
+//                 WHERE user_id = $4
+//             `, [updates.email, updates.number, updates.password, user_id]);
+
+//             delete temporaryUserUpdates[user_id];
+
+//             return res.status(200).json({ message: "Changes confirmed and updated successfully." });
+//         } catch (error) {
+//             console.error('Error:', error);
+//             return res.status(500).json({ error: 'Server error' });
+//         }
+//     } else {
+//         return res.status(400).json({ error: "Invalid confirmation codes provided." });
+//     }
+// };
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, 
+    daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
+    get_personal_info, 
+
+};
 
 
