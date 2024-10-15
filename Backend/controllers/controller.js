@@ -1,33 +1,6 @@
 const con = require('../database');  // Import the PostgreSQL database connection
 
 // Add resource to the database
-// const addResource = (req, res) => {
-//     const { disease_name, resources_desc, resource_link, resources_title } = req.body;
-
-//     const generateUniqueId = () => Math.floor(Math.random() * 1000000);
-
-//     const disease_query = `SELECT disease_id FROM chronic_diseases WHERE disease_name = $1`;
-//     con.query(disease_query, [disease_name], (err, result) => {
-//         if (err) return res.status(500).json({ error: "Internal server error" });
-//         if (result.rows.length === 0) return res.status(404).json({ message: "Disease not found" });
-
-//         const disease_id = result.rows[0].disease_id;
-//         const insert_resource_query = `INSERT INTO resources (resources_desc, resource_link, resources_title, status) VALUES ($1, $2, $3, 'active') RETURNING resource_id`;
-//         const resource_values = [resources_desc, resource_link, resources_title];
-
-//         con.query(insert_resource_query, resource_values, (err, resourceResult) => {
-//             if (err) return res.status(500).json({ error: "Internal server error while adding resource" });
-//             const resource_id = resourceResult.rows[0].resource_id;
-//             const disease_resource_id = generateUniqueId();
-//             const insert_disease_resource_query = `INSERT INTO disease_resources (disease_resource_id, disease_id, resource_id) VALUES ($1, $2, $3)`;
-
-//             con.query(insert_disease_resource_query, [disease_resource_id, disease_id, resource_id], (err) => {
-//                 if (err) return res.status(500).json({ error: "Internal server error while adding disease-resource relation" });
-//                 res.status(201).json({ message: "Resource added successfully", resource_id, disease_resource_id });
-//             });
-//         });
-//     });
-// };
 const addResource = (req, res) => {
     const { disease_name, resources_desc, resource_link, resources_title } = req.body;
 
@@ -89,15 +62,45 @@ const addResource = (req, res) => {
 
 
 
-
-// Fetch resources from the database
 const fetchResources = (req, res) => {
-    const fetch_query = "SELECT * FROM resources;";
-    con.query(fetch_query, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).json(result.rows);
+    const resources_query = `
+        SELECT 
+            r.resource_id, 
+            r.resources_desc, 
+            r.resource_link, 
+            r.resources_title, 
+            r.status, 
+            cd.disease_name AS disease
+        FROM 
+            resources r
+        JOIN 
+            disease_resources dr 
+        ON 
+            r.resource_id = dr.resource_id
+        JOIN 
+            chronic_diseases cd 
+        ON 
+            dr.disease_id = cd.disease_id
+        WHERE 
+            r.status = 'active'
+    `;
+
+    con.query(resources_query, (err, result) => {
+        if (err) {
+            console.error("Error fetching resources with disease names:", err.stack);
+            return res.status(500).json({ error: "Internal server error while fetching resources" });
+        }
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "No active resources found" });
+        }
+
+        // Return the resources along with their associated disease names
+        return res.status(200).json(result.rows);
     });
 };
+
+
 
 // Admin login function
 const login = (req, res) => {
@@ -306,47 +309,7 @@ const deleteAdmin = (req, res) => {
 
 
 
-// Add a question to the database
-// const addQuestion = (req, res) => {
-//     const { question, question_type, status, disease, options, weightage } = req.body;
-//     if (!question || !question_type || !disease || !options || !weightage) return res.status(400).json({ error: "Please provide all required fields" });
-//     if (!Array.isArray(options) || !Array.isArray(weightage) || options.length !== weightage.length) return res.status(400).json({ error: "Options and weightage must be arrays of the same length" });
-
-//     const disease_query = `SELECT disease_id FROM chronic_diseases WHERE disease_name = $1`;
-//     con.query(disease_query, [disease], (err, diseaseResult) => {
-//         if (err) return res.status(500).json({ error: "Internal server error" });
-//         if (diseaseResult.rows.length === 0) return res.status(404).json({ error: "Disease not found" });
-
-//         const disease_id = diseaseResult.rows[0].disease_id;
-//         const question_id = Math.floor(Math.random() * 1000000);
-//         const insert_question_query = `INSERT INTO questions (question_id, question, question_type, status) VALUES ($1, $2, $3, $4)`;
-
-//         con.query(insert_question_query, [question_id, question, question_type, status], (err) => {
-//             if (err) return res.status(500).json({ error: "Internal server error while adding question" });
-
-//             const question_disease_relation_id = Math.floor(Math.random() * 1000000);
-//             const insert_relation_query = `INSERT INTO question_disease_relation (question_disease_relation_id, question_id, disease_id) VALUES ($1, $2, $3)`;
-
-//             con.query(insert_relation_query, [question_disease_relation_id, question_id, disease_id], (err) => {
-//                 if (err) return res.status(500).json({ error: "Internal server error while adding question-disease relation" });
-
-//                 const insertOptionsAndWeightage = options.map((optionText, index) => {
-//                     const options_id = Math.floor(Math.random() * 1000000);
-//                     const questions_disease_weightage_id = Math.floor(Math.random() * 1000000);
-//                     const optionQuery = `INSERT INTO options (options_id, options, question_id, status) VALUES ($1, $2, $3, 'active')`;
-//                     const weightageQuery = `INSERT INTO questions_disease_weightage (questions_disease_weightage_id, question_id, disease_id, options_id, weightage) VALUES ($1, $2, $3, $4, $5)`;
-
-//                     return con.query(optionQuery, [options_id, optionText, question_id])
-//                         .then(() => con.query(weightageQuery, [questions_disease_weightage_id, question_id, disease_id, options_id, weightage[index]]));
-//                 });
-
-//                 Promise.all(insertOptionsAndWeightage)
-//                     .then(() => res.status(201).json({ message: "Question, options, and weightage added successfully!" }))
-//                     .catch((error) => res.status(500).json({ error: "Internal server error while adding options or weightage" }));
-//             });
-//         });
-//     });
-// };
+// Add a question
 const addQuestion = (req, res) => {
     const { question, question_type, status, disease, options, weightage } = req.body;
 
