@@ -559,22 +559,29 @@ const get_submission = async (req, res) => {
     const { submission_id } = req.body; 
 
     try {
+
         const responsesResult = await pool.query(`
             SELECT 
                 r.question_id, 
                 q.question, 
+                q.question_type AS type,
                 r.answer, 
-                o.options_id AS option_id
+                o.options_id AS option_id,
+                o.options AS option_text
             FROM 
                 responses r
             JOIN 
                 questions q ON r.question_id = q.question_id
             JOIN 
-                options o ON r.answer = o.options
+                (
+                    SELECT DISTINCT ON (question_id, options) options_id, question_id, options 
+                    FROM options 
+                    ORDER BY question_id, options, options_id
+                ) o ON r.question_id = o.question_id
             WHERE 
                 r.submission_id = $1
             ORDER BY 
-                r.question_id
+                r.question_id, o.options_id
         `, [submission_id]);
 
         if (responsesResult.rows.length === 0) {
@@ -584,28 +591,40 @@ const get_submission = async (req, res) => {
         const responseMap = {};
 
         responsesResult.rows.forEach(response => {
-            const { question_id, question, answer, option_id } = response;
+            const { question_id, question, type, answer, option_id, option_text } = response;
 
             if (!responseMap[question_id]) {
                 responseMap[question_id] = {
                     question_id,
                     question,
-                    answers: []
+                    options: [],
+                    type,
+                    answer: null
                 };
             }
 
-            responseMap[question_id].answers.push({
-                option_id,
-                answer
-            });
+            const isOptionAdded = responseMap[question_id].options.some(opt => opt.id === option_id);
+            if (!isOptionAdded) {
+                responseMap[question_id].options.push({
+                    id: option_id,
+                    text: option_text
+                });
+            }
+
+            if (answer === option_text) {
+                responseMap[question_id].answer = {
+                    id: option_id,
+                    text: answer
+                };
+            }
         });
 
-        const responseArray = Object.values(responseMap).map(({ question_id, question, answers }) => ({
+        const responseArray = Object.values(responseMap).map(({ question_id, question, options, type, answer }) => ({
             question_id,
             question,
-            answers: answers.filter((ans, index, self) =>
-                index === self.findIndex(a => a.answer === ans.answer)
-            )
+            options: options.map(opt => ({ id: opt.id, text: opt.text })), // Format options with id and text
+            type,
+            answer
         }));
 
         res.status(200).json(responseArray);
@@ -615,6 +634,58 @@ const get_submission = async (req, res) => {
     }
 };
 
+
+//req body
+
+// {
+//     "submission_id": "f1665bbe-92c9-4a9d-bca6-3ec1fde53d1e"
+// }
+
+
+
+//res body 
+
+
+// [
+//     {
+//         "question_id": 3,
+//         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "options": [
+//             {
+//                 "id": 7,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 8,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 7,
+//             "text": "yes"
+//         }
+//     },
+//     {
+//         "question_id": 16,
+//         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "options": [
+//             {
+//                 "id": 40,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 41,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 41,
+//             "text": "no"
+//         }
+//     }
+// ]
 
 
 const submission_report = async (req, res) => {
@@ -1039,7 +1110,314 @@ const daily_reports = async (req, res) => {
 // ]
 
 
+//retrieves only daily questions submissions
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, daily_questionnaire, daily_questionnaire_responses, daily_reports};
+const daily_get_submission = async (req, res) => {
+    const { submission_id } = req.body; 
+
+    try {
+        const responsesResult = await pool.query(`
+            SELECT 
+                r.question_id, 
+                q.question, 
+                q.question_type AS type,
+                r.answer, 
+                o.options_id AS option_id,
+                o.options AS option_text
+            FROM 
+                responses r
+            JOIN 
+                questions q ON r.question_id = q.question_id
+            JOIN 
+                (
+                    SELECT DISTINCT ON (question_id, options) options_id, question_id, options 
+                    FROM options 
+                    ORDER BY question_id, options, options_id
+                ) o ON r.question_id = o.question_id
+            JOIN 
+                questions_disease_weightage qdw ON r.question_id = qdw.question_id
+            JOIN 
+                chronic_diseases d ON qdw.disease_id = d.disease_id
+            WHERE 
+                r.submission_id = $1 AND d.disease_name ILIKE '%daily%'
+            ORDER BY 
+                r.question_id, o.options_id
+        `, [submission_id]);
+
+        if (responsesResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No responses found for this submission ID.' });
+        }
+
+        const responseMap = {};
+
+        responsesResult.rows.forEach(response => {
+            const { question_id, question, type, answer, option_id, option_text } = response;
+
+            if (!responseMap[question_id]) {
+                responseMap[question_id] = {
+                    question_id,
+                    question,
+                    options: [],
+                    type,
+                    answer: null
+                };
+            }
+
+            const isOptionAdded = responseMap[question_id].options.some(opt => opt.id === option_id);
+            if (!isOptionAdded) {
+                responseMap[question_id].options.push({
+                    id: option_id,
+                    text: option_text
+                });
+            }
+
+            if (answer === option_text) {
+                responseMap[question_id].answer = {
+                    id: option_id,
+                    text: answer
+                };
+            }
+        });
+
+        const responseArray = Object.values(responseMap).map(({ question_id, question, options, type, answer }) => ({
+            question_id,
+            question,
+            options: options.map(opt => ({ id: opt.id, text: opt.text })), 
+            type,
+            answer
+        }));
+
+        res.status(200).json(responseArray);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+//req body
+
+// {
+//     "submission_id": "f1665bbe-92c9-4a9d-bca6-3ec1fde53d1e"
+// }
+
+
+
+//res body 
+
+
+// [
+//     {
+//         "question_id": 3,
+//         "question": "Do you engage in less than 30 minutes of physical activity daily?",
+//         "options": [
+//             {
+//                 "id": 7,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 8,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 7,
+//             "text": "yes"
+//         }
+//     },
+//     {
+//         "question_id": 16,
+//         "question": "Do you engage in less than 30 minutes of weight-bearing exercise (e.g., walking, running, strength training) daily?",
+//         "options": [
+//             {
+//                 "id": 40,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 41,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "answer": {
+//             "id": 41,
+//             "text": "no"
+//         }
+//     }
+// ]
+
+
+
+
+//get personal information of a user
+
+const get_personal_info = async (req, res) => {
+    const user_id = req.userId; 
+
+    try {
+        const userResult = await pool.query(`
+            SELECT 
+                first_name, 
+                last_name, 
+                username, 
+                email, 
+                phone AS phone_number, 
+                TO_CHAR(dob, 'YYYY-MM-DD') AS dob
+            FROM 
+                users
+            WHERE 
+                user_id = $1
+        `, [user_id]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userInfo = userResult.rows[0];
+        res.status(200).json(userInfo);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+//req body
+
+//just auth token
+
+//res body
+
+// {
+//     "first_name": "dummy_firstName_6",
+//     "last_name": "dummy_lastName_6",
+//     "username": "dummy_username_6",
+//     "email": "dummy_6@gmail.com",
+//     "phone_number": "+1 716-555-0000",
+//     "dob": "1990-01-01"
+// }
+
+
+
+// let temporaryUserUpdates = {}; 
+
+// const update_personal_info = async (req, res) => {
+//     const user_id = req.userId;
+//     const { first_name, last_name, username, email, password, phone_number, dob } = req.body;
+
+//     try {
+//         const currentUserResult = await pool.query(`
+//             SELECT email, phone AS number, password 
+//             FROM users 
+//             WHERE user_id = $1
+//         `, [user_id]);
+
+//         if (currentUserResult.rows.length === 0) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         const currentUser = currentUserResult.rows[0];
+//         console.log('Current User:', currentUser); 
+//         console.log('Incoming Request:', req.body); 
+
+//         let requiresConfirmation = false;
+
+//         const updates = {
+//             first_name,
+//             last_name,
+//             username,
+//             dob
+//         };
+
+//         if (email && email !== currentUser.email) {
+//             updates.email = email;
+//             requiresConfirmation = true;
+//         }
+//         if (phone_number && phone_number !== currentUser.number) {
+//             updates.number = phone_number;
+//             requiresConfirmation = true;
+//         }
+//         if (password) {
+//             const hashedPassword = await bcrypt.hash(password, 10);
+//             if (hashedPassword !== currentUser.password) {
+//                 updates.password = hashedPassword;
+//                 requiresConfirmation = true;
+//             }
+//         }
+
+//         if (requiresConfirmation) {
+//             temporaryUserUpdates[user_id] = updates;
+
+//             const confirmationCodes = {
+//                 phoneCode: "123456",
+//                 emailCode: "654321"
+//             };
+
+//             console.log('Confirmation codes sent to email and phone:', confirmationCodes);
+
+//             return res.status(409).json({ message: 'Confirmation needed for email, phone, or password changes.' });
+//         }
+
+//         await pool.query(`
+//             UPDATE users 
+//             SET first_name = $1, last_name = $2, username = $3, dob = $4
+//             WHERE user_id = $5
+//         `, [first_name, last_name, username, dob, user_id]);
+
+//         res.status(200).json({ message: 'Personal information updated successfully.' });
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).json({ error: 'Server error' });
+//     }
+// };
+
+
+
+// const confirm_personal_changes = async (req, res) => {
+//     const user_id = req.userId; 
+//     const { phoneCode, emailCode } = req.body;
+
+//     const confirmationCodes = {
+//         phoneCode: "123456",
+//         emailCode: "654321" 
+//     };
+
+//     if (phoneCode === confirmationCodes.phoneCode && emailCode === confirmationCodes.emailCode) {
+
+//         const updates = temporaryUserUpdates[user_id];
+
+//         if (!updates) {
+//             return res.status(400).json({ error: "No updates found or already confirmed." });
+//         }
+
+//         try {
+
+//             await pool.query(`
+//                 UPDATE users 
+//                 SET email = $1, phone = $2, password = $3
+//                 WHERE user_id = $4
+//             `, [updates.email, updates.number, updates.password, user_id]);
+
+//             delete temporaryUserUpdates[user_id];
+
+//             return res.status(200).json({ message: "Changes confirmed and updated successfully." });
+//         } catch (error) {
+//             console.error('Error:', error);
+//             return res.status(500).json({ error: 'Server error' });
+//         }
+//     } else {
+//         return res.status(400).json({ error: "Invalid confirmation codes provided." });
+//     }
+// };
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, 
+    daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
+    get_personal_info, 
+
+};
 
 
