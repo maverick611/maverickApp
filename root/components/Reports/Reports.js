@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Header from '../Header/Header';
@@ -6,7 +6,17 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {BarChart, Grid} from 'react-native-svg-charts';
 
 const Reports = props => {
-  const {navigation} = props;
+  const formatReport = isoString => {
+    const date = new Date(isoString);
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const year = date.getUTCFullYear();
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    return [`Report on ${day}/${month}/${year}`, `at ${hours}:${minutes}`];
+  };
+  const {navigation, loginToken} = props;
+  const [allReports, setAllReports] = useState([]);
   const responseDates = [
     ['Report on 09/27/2024', 'at 2:30PM'],
     ['Report on 05/25/2024', 'at 2:30PM'],
@@ -30,6 +40,23 @@ const Reports = props => {
 
   const fill = 'rgb(134, 65, 244)';
   const data = [50, 10, 40, 95, 10, 85, 11, 35];
+
+  useEffect(() => {
+    const fetchGetSubmission = async () => {
+      const response = await fetch('http://10.0.2.2:3000/reports', {
+        method: 'GET',
+        headers: {
+          authorization: `Bearer ${loginToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      // console.log('data', JSON.stringify(data));
+      setAllReports(data);
+    };
+    fetchGetSubmission();
+  }, []);
+
   return (
     <View>
       <Header />
@@ -38,7 +65,7 @@ const Reports = props => {
           <View style={styles.ViewHistoryText}>
             <Text>VIEW HISTORY</Text>
           </View>
-          {responseDates.map((date, index) => {
+          {allReports.map((report, index) => {
             return (
               <View
                 style={{
@@ -59,14 +86,18 @@ const Reports = props => {
                     flexDirection: 'column',
                     justifyContent: 'center',
                   }}>
-                  <Text>{responseDates[index][0]}</Text>
-                  <Text>{responseDates[index][1]}</Text>
+                  <Text>{formatReport(report.timestamp)[0]}</Text>
+                  <Text>{formatReport(report.timestamp)[1]}</Text>
                 </View>
                 <View style={{padding: 1}}>
                   <View style={{margin: 1}}>
                     <Button
                       onPress={() =>
-                        navigation.navigate('LongQuestionnaireResponses')
+                        navigation.navigate('LongQuestionnaireResponses', {
+                          submission_id: report.submission_id,
+                          navigation: navigation,
+                          loginToken: loginToken,
+                        })
                       }
                       title="View Response"
                     />

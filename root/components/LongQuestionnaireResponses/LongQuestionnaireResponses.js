@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, Button} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-// import {ScrollView} from 'react-native-gesture-handler';
 const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
   if (question.type === 'dropdown') {
     return (
@@ -44,12 +43,14 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
   }
 };
 
-const LongQuestionnaireResponses = props => {
-  const {navigation} = props;
+const LongQuestionnaireResponses = ({route}) => {
+  const {loginToken, submission_id} = route.params;
+
   const [selectedValue, setSelectedValue] = useState('4-5'); // For dropdown picker state
 
   const questions = [
     {
+      question_id: 1,
       question: 'Have you taken 3L of water today?',
       options: ['yes', 'no'],
       type: 'single',
@@ -105,6 +106,23 @@ const LongQuestionnaireResponses = props => {
     },
   ];
 
+  useEffect(() => {
+    const fetchGetSubmission = async () => {
+      const response = await fetch('http://10.0.2.2:3000/get_submission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${loginToken}`,
+        },
+        body: JSON.stringify({submission_id: submission_id}),
+      });
+      const data = await response.json();
+      // setHomeDetails(data);
+      console.log('data', JSON.stringify(data));
+    };
+    fetchGetSubmission();
+  }, []);
+
   return (
     <ScrollView style={{backgroundColor: 'rgb(226	244	254	)'}}>
       <View style={styles.container}>
@@ -120,7 +138,7 @@ const LongQuestionnaireResponses = props => {
             </View>
           ))}
         </View>
-        <Button title="Back" onPress={() => navigation.goBack()} />
+        {/* <Button title="Back" onPress={() => navigation.goBack()} /> */}
       </View>
     </ScrollView>
   );

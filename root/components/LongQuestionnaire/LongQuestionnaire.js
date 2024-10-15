@@ -68,24 +68,28 @@ const renderQuestion = (
     );
   }
 };
-
+import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
 const LongQuestionnaire = props => {
+  const [todayQ, setTodayQ] = useState(false);
   const {navigation, isItDailyQuestions, loginToken} = props;
   const [currentPage, setCurrentPage] = useState(0);
   const [currentAnswers, setCurrentAnswers] = useState({});
+  const [barChartData, setBarChartData] = useState([]);
   const updateQuestionsAnswer = (option_id, question_id, questionType) => {
     if (questionType === 'single_choice') {
       setCurrentAnswers(prev => ({...prev, [question_id]: [option_id]}));
     }
   };
-
+  {
+    console.log(barChartData);
+  }
   const url = isItDailyQuestions
     ? 'http://10.0.2.2:3000/daily_questionnaire'
     : 'http://10.0.2.2:3000/questionnaire';
 
   const submitURL = !isItDailyQuestions
     ? 'http://10.0.2.2:3000/questionnaire_responses'
-    : '';
+    : 'http://10.0.2.2:3000/daily_questionnaire_responses';
 
   const transformToDesiredStructure = data => {
     return Object.entries(data).map(([question_id, options_selected]) => {
@@ -109,8 +113,20 @@ const LongQuestionnaire = props => {
       }),
     });
     const data = await response.json();
+    console.log('gggg', data);
 
-    console.log('ooouuutt', data);
+    if (response.ok) {
+      if (!isItDailyQuestions) {
+        setBarChartData(
+          data.map(e => ({
+            value: e.risk_score,
+            label: e.disease_name,
+            color: '#ff6b6b',
+          })),
+        );
+      }
+      setTodayQ(true);
+    }
   };
   const [questions, setLongQuestionnaire] = useState([]);
   useEffect(() => {
@@ -138,7 +154,20 @@ const LongQuestionnaire = props => {
     fetchLongQuestionnaire();
   }, []);
   let whichQuestionsToUse = questions;
-  return (
+  return isItDailyQuestions && todayQ ? (
+    <View
+      style={{
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <Text style={styles.thanksText}>
+        Thank you for filling today's questionnaire
+      </Text>
+    </View>
+  ) : !isItDailyQuestions && todayQ ? (
+    <HorizontalBarChart data={barChartData} />
+  ) : (
     <ScrollView style={{backgroundColor: 'rgb(226	244	254	)'}}>
       <View style={styles.container}>
         <View>
@@ -198,6 +227,9 @@ const LongQuestionnaire = props => {
 };
 
 const styles = StyleSheet.create({
+  thanksText: {
+    fontSize: 20,
+  },
   saveAsDraftContainer: {
     margin: 5,
   },
