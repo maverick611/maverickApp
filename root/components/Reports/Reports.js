@@ -51,7 +51,7 @@ const Reports = props => {
         },
       });
       const data = await response.json();
-      // console.log('data', JSON.stringify(data));
+      console.log('datajjjjjjj', JSON.stringify(data));
       setAllReports(data);
     };
     fetchGetSubmission();
@@ -95,7 +95,6 @@ const Reports = props => {
                       onPress={() =>
                         navigation.navigate('LongQuestionnaireResponses', {
                           submission_id: report.submission_id,
-                          navigation: navigation,
                           loginToken: loginToken,
                         })
                       }

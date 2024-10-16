@@ -3,13 +3,40 @@ import {View, Text, Dimensions} from 'react-native';
 import {BarChart} from 'react-native-svg-charts';
 
 const HorizontalBarChart = props => {
-  let {data} = props;
+  // let {data} = props;
+  console.log(props.data);
+
+  const graphLabelMaker = {
+    'Cardiovascular Disease Risk': 'Heart Disease Risk',
+    'Diabetes and Metabolic Syndrome Risk': 'Diabetes',
+    'Obesity Risk': 'Obesity Risk',
+    'Stroke Risk': 'Stroke Risk',
+    daily: 'daily',
+  };
+
+  const colorMapper = value => {
+    if (value >= 8) {
+      return '#ff0000';
+    }
+    if (value >= 4) {
+      return '#FFFF29';
+    }
+    return '#007900';
+  };
+
+  let data = props.data.map(e => ({
+    value: e.value,
+    label: graphLabelMaker[e.label],
+    color: colorMapper(e.value),
+  }));
+
   data = data.filter(e => e.label != 'daily');
   const barData = data.map(item => ({
     value: item.value,
     svg: {fill: item.color},
     label: item.label,
   }));
+  console.log('bdata', barData);
 
   const Labels = ({x, y, bandwidth, data}) =>
     data.map((item, index) => (
@@ -62,6 +89,8 @@ const HorizontalBarChart = props => {
           yAccessor={({item}) => item.value}
           contentInset={{top: 10, bottom: 10, left: 10, right: 10}}
           spacing={0.2}
+          spacingInner={0.4}
+          spacingOuter={0.4}
           gridMin={0}>
           {false && <Labels />}
         </BarChart>

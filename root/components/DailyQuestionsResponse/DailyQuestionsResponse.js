@@ -45,7 +45,7 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
 };
 
 const DailyQuestionsResponse = props => {
-  const {navigation} = props;
+  const {submission_id} = props;
   const [selectedValue, setSelectedValue] = useState('4-5'); // For dropdown picker state
 
   const questions = [

@@ -15,13 +15,20 @@ const handlePress = async () => {
 };
 
 const Home = props => {
-  const [homeDetails, setHomeDetails] = useState({});
+  const [homeDetails, setHomeDetails, loginToken] = useState({});
   const {navigation} = props;
   const aboutUsImage = require('../../assets/homeAboutUsImage.jpg');
+  const [newSub, setNewSub] = useState(0);
 
   useEffect(() => {
     const fetchHomeDetails = async () => {
-      const response = await fetch('http://10.0.2.2:3000/home');
+      const response = await fetch('http://10.0.2.2:3000/home', {
+        method: 'GET',
+        headers: {
+          authorization: `Bearer ${loginToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
       const data = await response.json();
       setHomeDetails(data);
     };

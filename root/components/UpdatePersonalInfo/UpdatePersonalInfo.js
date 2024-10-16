@@ -1,23 +1,49 @@
-import React from 'react';
+import React, {useDebugValue, useEffect, useState} from 'react';
 import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
 
-const UpdatePersonalInfo = () => {
+const UpdatePersonalInfo = props => {
+  const {loginToken} = props;
+  const [userDetails, setUserDetails] = useState({
+    email: '',
+    first_name: '',
+    last_name: '',
+    phone_number: '',
+    username: '',
+    dob: '',
+  });
+  console.log('userDetails', userDetails);
+
+  useEffect(() => {
+    const fetchPersonalDetails = async () => {
+      const response = await fetch('http://10.0.2.2:3000/get_personal_info', {
+        method: 'GET',
+        headers: {
+          authorization: `Bearer ${loginToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setUserDetails(data);
+    };
+    fetchPersonalDetails();
+  }, []);
+
   return (
     <View style={styles.mainContainer}>
       <View style={styles.dataContainer}>
         <Text>First Name</Text>
-        <TextInput style={styles.textInput} />
+        <TextInput value={userDetails.first_name} style={styles.textInput} />
         <Text>Last Name</Text>
-        <TextInput style={styles.textInput} />
+        <TextInput value={userDetails.last_name} style={styles.textInput} />
         <Text>Username</Text>
-        <TextInput style={styles.textInput} />
+        <TextInput value={userDetails.username} style={styles.textInput} />
         <Text>Password</Text>
         <TextInput style={styles.textInput} secureTextEntry={true} />
         <Text>Email</Text>
-        <TextInput style={styles.textInput} />
+        <TextInput value={userDetails.email} style={styles.textInput} />
         <Text>Phone Number</Text>
-        <TextInput style={styles.textInput} />
-        <Text>Date of Birth</Text>
+        <TextInput value={userDetails.phone_number} style={styles.textInput} />
+        {/* <Text>Date of Birth</Text> */}
       </View>
       <View style={styles.button}>
         <Button title="Save Changes" />

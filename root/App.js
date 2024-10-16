@@ -14,12 +14,13 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Ionicons from 'react-native-vector-icons/Ionicons.js';
 import DailyQuestions from './components/DailyQuestions/DailyQuestions.js';
 import LongQuestionnaire from './components/LongQuestionnaire/LongQuestionnaire.js';
-import CertainReport from './components/HorizontalBarChart/HorizontalBarChart.js';
+import CertainReport from './components/CertainReport/CertainReport.js';
 import UpdateProfilePicture from './components/UpdateProfilePicture/UpdateProfilePicture.js';
 import Avatar from './components/Avatar/Avatar.js';
 import Profile from './components/Profile/Profile.js';
 import LongQuestionnaireResponses from './components/LongQuestionnaireResponses/LongQuestionnaireResponses.js';
 import UpdatePersonalInfo from './components/UpdatePersonalInfo/UpdatePersonalInfo.js';
+import HorizontalBarChart from './components/HorizontalBarChart/HorizontalBarChart.js';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -47,13 +48,17 @@ const MyTabs = props => {
         tabBarActiveTintColor: 'black',
         tabBarInactiveTintColor: 'gray',
       })}>
-      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Home">
+        {props => <Home {...props} loginToken={loginToken} />}
+      </Tab.Screen>
       <Tab.Screen name="Notify" component={Notify} />
       <Tab.Screen name="Report">
         {props => <Reports {...props} loginToken={loginToken} />}
       </Tab.Screen>
       <Tab.Screen name="Resources" component={Progress} />
-      <Tab.Screen name="Daily" component={Daily} />
+      <Tab.Screen name="Daily">
+        {props => <Daily {...props} loginToken={loginToken} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };
@@ -97,11 +102,6 @@ const App = () => {
             />
           )}
         </Stack.Screen>
-        {/* <Stack.Screen
-          name="dq"
-          component={DailyQuestions}
-          options={{title: "Today's Questionnaire"}}
-        /> */}
         <Stack.Screen
           name="LongQuestionnaire"
           options={{title: 'Your Personalised Questionnare'}}>
@@ -125,9 +125,10 @@ const App = () => {
         />
         <Stack.Screen
           name="UpdatePersonalInfo"
-          component={UpdatePersonalInfo}
-          options={{title: ''}}
-        />
+          // component={UpdatePersonalInfo}
+          options={{title: ''}}>
+          {props => <UpdatePersonalInfo {...props} loginToken={loginToken} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   ) : (

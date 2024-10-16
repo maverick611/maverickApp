@@ -4,6 +4,8 @@ import {Picker} from '@react-native-picker/picker';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
+  console.log('qqqq', question);
+
   if (question.type === 'dropdown') {
     return (
       <View key={index} style={styles.questionContainer}>
@@ -18,7 +20,10 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
         </Picker>
       </View>
     );
-  } else if (question.type === 'single') {
+  } else if (question.type === 'single_choice') {
+    {
+      console.log('kkkkk', question);
+    }
     return (
       <View key={index} style={styles.questionContainer}>
         <Text style={styles.questionText}>{question.question}</Text>
@@ -27,13 +32,13 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
             <View
               style={{display: 'flex', flexDirection: 'row', margin: 5}}
               key={i}>
-              {question.answer != option ? (
+              {question.answer['id'] != option['id'] ? (
                 <EntypoIcon name="circle" size={15} />
               ) : (
                 <FontAwesomeIcon name="dot-circle-o" size={19} />
               )}
               <Text key={i} style={styles.optionText}>
-                {option}
+                {option.text}
               </Text>
             </View>
           ))}
@@ -44,68 +49,69 @@ const renderQuestion = (question, index, selectedValue, setSelectedValue) => {
 };
 
 const LongQuestionnaireResponses = ({route}) => {
-  const {loginToken, submission_id} = route.params;
+  const {loginToken, submission_id, setNewSub} = route.params;
 
   const [selectedValue, setSelectedValue] = useState('4-5'); // For dropdown picker state
 
-  const questions = [
-    {
-      question_id: 1,
-      question: 'Have you taken 3L of water today?',
-      options: ['yes', 'no'],
-      type: 'single',
-      answer: 'yes',
-    },
-    {
-      question: 'Did you consume any fruits or vegetables today?',
-      options: ['yes', 'no'],
-      type: 'single',
-      answer: 'no',
-    },
-    {
-      question: 'How long do you sit (hrs)',
-      options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
-      type: 'dropdown',
-      answer: ['4-5'],
-    },
-    {
-      question: 'Have you taken 3L of water today?',
-      options: ['yes', 'no'],
-      type: 'single',
-      answer: 'yes',
-    },
-    {
-      question: 'Did you consume any fruits or vegetables today?',
-      options: ['yes', 'no'],
-      type: 'single',
-      answer: 'no',
-    },
-    {
-      question: 'How long do you sit (hrs)',
-      options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
-      type: 'dropdown',
-      answer: ['4-5'],
-    },
-    {
-      question: 'Have you taken 3L of water today?',
-      options: ['yes', 'no'],
-      type: 'single',
-      answer: 'yes',
-    },
-    {
-      question: 'Did you consume any fruits or vegetables today?',
-      options: ['yes', 'no'],
-      type: 'single',
-      answer: 'no',
-    },
-    {
-      question: 'How long do you sit (hrs)',
-      options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
-      type: 'dropdown',
-      answer: ['4-5'],
-    },
-  ];
+  // const questions = [
+  //   {
+  //     question_id: 1,
+  //     question: 'Have you taken 3L of water today?',
+  //     options: ['yes', 'no'],
+  //     type: 'single',
+  //     answer: 'yes',
+  //   },
+  //   {
+  //     question: 'Did you consume any fruits or vegetables today?',
+  //     options: ['yes', 'no'],
+  //     type: 'single',
+  //     answer: 'no',
+  //   },
+  //   {
+  //     question: 'How long do you sit (hrs)',
+  //     options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
+  //     type: 'dropdown',
+  //     answer: ['4-5'],
+  //   },
+  //   {
+  //     question: 'Have you taken 3L of water today?',
+  //     options: ['yes', 'no'],
+  //     type: 'single',
+  //     answer: 'yes',
+  //   },
+  //   {
+  //     question: 'Did you consume any fruits or vegetables today?',
+  //     options: ['yes', 'no'],
+  //     type: 'single',
+  //     answer: 'no',
+  //   },
+  //   {
+  //     question: 'How long do you sit (hrs)',
+  //     options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
+  //     type: 'dropdown',
+  //     answer: ['4-5'],
+  //   },
+  //   {
+  //     question: 'Have you taken 3L of water today?',
+  //     options: ['yes', 'no'],
+  //     type: 'single',
+  //     answer: 'yes',
+  //   },
+  //   {
+  //     question: 'Did you consume any fruits or vegetables today?',
+  //     options: ['yes', 'no'],
+  //     type: 'single',
+  //     answer: 'no',
+  //   },
+  //   {
+  //     question: 'How long do you sit (hrs)',
+  //     options: ['<1', '1-2', '2-3', '3-4', '4-5', '5>'],
+  //     type: 'dropdown',
+  //     answer: ['4-5'],
+  //   },
+  // ];
 
+  const [questions, setQuestions] = useState([]);
   useEffect(() => {
     const fetchGetSubmission = async () => {
       const response = await fetch('http://10.0.2.2:3000/get_submission', {
@@ -118,7 +124,8 @@ const LongQuestionnaireResponses = ({route}) => {
       });
       const data = await response.json();
       // setHomeDetails(data);
-      console.log('data', JSON.stringify(data));
+      setQuestions(data);
+      console.log('dataaa', JSON.stringify(data));
     };
     fetchGetSubmission();
   }, []);

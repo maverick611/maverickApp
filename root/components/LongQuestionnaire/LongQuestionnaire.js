@@ -10,7 +10,8 @@ import {
 import {Picker} from '@react-native-picker/picker';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-// import {ScrollView} from 'react-native-gesture-handler';
+import {useRoute} from '@react-navigation/native';
+import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
 const renderQuestion = (
   question,
   index,
@@ -36,7 +37,10 @@ const renderQuestion = (
   } else if (question.type === 'single_choice') {
     return (
       <View key={index} style={styles.questionContainer}>
-        <Text style={styles.questionText}>{question.question}</Text>
+        <View style={{flexDirection: 'row'}}>
+          <Text style={styles.questionText}>{question.question.trim()}</Text>
+          <Text style={{color: 'red'}}>*</Text>
+        </View>
         <View style={styles.optionsHolder}>
           {question.options.map((option, i) => (
             <TouchableOpacity
@@ -68,21 +72,27 @@ const renderQuestion = (
     );
   }
 };
-import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
+
 const LongQuestionnaire = props => {
   const [todayQ, setTodayQ] = useState(false);
   const {navigation, isItDailyQuestions, loginToken} = props;
+  const route = useRoute();
+
+  try {
+    var {setNewSub} = route.params;
+  } catch (error) {}
+
   const [currentPage, setCurrentPage] = useState(0);
   const [currentAnswers, setCurrentAnswers] = useState({});
   const [barChartData, setBarChartData] = useState([]);
+  const [errorText, setErrorText] = useState('');
+  console.log('barChartData', barChartData);
+
   const updateQuestionsAnswer = (option_id, question_id, questionType) => {
     if (questionType === 'single_choice') {
       setCurrentAnswers(prev => ({...prev, [question_id]: [option_id]}));
     }
   };
-  {
-    console.log(barChartData);
-  }
   const url = isItDailyQuestions
     ? 'http://10.0.2.2:3000/daily_questionnaire'
     : 'http://10.0.2.2:3000/questionnaire';
@@ -101,7 +111,11 @@ const LongQuestionnaire = props => {
   };
 
   const submitQuestionnare = async () => {
-    console.log(submitURL);
+    setErrorText('');
+    if (Object.values(currentAnswers).filter(a => a.length == 0).length != 0) {
+      setErrorText('Please answer all the questions');
+      return;
+    }
     const response = await fetch(submitURL, {
       method: 'POST',
       headers: {
@@ -113,7 +127,6 @@ const LongQuestionnaire = props => {
       }),
     });
     const data = await response.json();
-    console.log('gggg', data);
 
     if (response.ok) {
       if (!isItDailyQuestions) {
@@ -121,11 +134,15 @@ const LongQuestionnaire = props => {
           data.map(e => ({
             value: e.risk_score,
             label: e.disease_name,
-            color: '#ff6b6b',
           })),
         );
       }
       setTodayQ(true);
+    }
+    try {
+      setNewSub(a => a + 1);
+    } catch (error) {
+      console.log(error);
     }
   };
   const [questions, setLongQuestionnaire] = useState([]);
@@ -217,6 +234,16 @@ const LongQuestionnaire = props => {
           <Button title="save draft" />
           {currentPage == Math.ceil(whichQuestionsToUse.length / 10) - 1 && (
             <View style={{marginTop: 5}}>
+              {errorText.length > 0 && (
+                <View
+                  style={{
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text style={styles.errorText}>{errorText}</Text>
+                </View>
+              )}
               <Button title="Submit" onPress={submitQuestionnare} />
             </View>
           )}
@@ -227,6 +254,9 @@ const LongQuestionnaire = props => {
 };
 
 const styles = StyleSheet.create({
+  errorText: {
+    color: 'red',
+  },
   thanksText: {
     fontSize: 20,
   },
