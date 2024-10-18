@@ -17,13 +17,6 @@ const Reports = props => {
   };
   const {navigation, loginToken, newSubmissionAddedlq} = props;
   const [allReports, setAllReports] = useState([]);
-  const responseDates = [
-    ['Report on 09/27/2024', 'at 2:30PM'],
-    ['Report on 05/25/2024', 'at 2:30PM'],
-    ['Report on 03/25/2024', 'at 2:30PM'],
-    ['Report on 01/25/2024', 'at 2:30PM'],
-    ['Report on 11/25/2023', 'at 2:30PM'],
-  ];
   const disease = [
     'osteoporosis',
     'Heart Disease',
@@ -51,6 +44,8 @@ const Reports = props => {
         },
       });
       const data = await response.json();
+      console.log('daaatta', data);
+
       setAllReports(data);
     };
     fetchGetSubmission();
@@ -66,6 +61,8 @@ const Reports = props => {
         },
       });
       const data = await response.json();
+      console.log('dataaa2', data);
+
       setAllReports(data);
     };
     fetchGetSubmission();

@@ -12,9 +12,7 @@ import {
 import DatePicker from 'react-native-date-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 const UpdatePersonalInfo = props => {
-  const myIcon = (
-    <Icon name={'calendar'} size={26} color="#900" style={{marginTop: 10}} />
-  );
+  const [modalBodyText, SetModalBodyText] = useState('');
   const {loginToken} = props;
   const [modalVisible, setModalVisible] = useState(false);
   const [open, setOpen] = useState(false);
@@ -23,10 +21,11 @@ const UpdatePersonalInfo = props => {
     first_name: '',
     last_name: '',
     phone_number: '',
+    password: '',
     username: '',
     dob: '',
   });
-
+  // toISOString().split('T')[0]
   const fetchPersonalDetails = async () => {
     const response = await fetch('http://10.0.2.2:3000/get_personal_info', {
       method: 'GET',
@@ -36,10 +35,11 @@ const UpdatePersonalInfo = props => {
       },
     });
     const data = await response.json();
-    console.log('userDetailsss', data);
+    console.log('data from json', data);
 
-    setUserDetails(data);
+    setUserDetails({...data, password: ''});
   };
+  console.log('line 40', userDetails);
   useEffect(() => {
     fetchPersonalDetails();
   }, []);
@@ -51,16 +51,55 @@ const UpdatePersonalInfo = props => {
   const closeModal = () => {
     setModalVisible(false);
   };
+  const setPersonalDetails = async () => {
+    console.log(userDetails);
+    // return;
+    try {
+      // return;
+      const response = await fetch(
+        'http://10.0.2.2:3000/update_personal_info',
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${loginToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userDetails),
+        },
+      );
+      console.log('bbbbbb', response);
+      if (response.ok) {
+        SetModalBodyText('Changes Saved Succesfully');
+      } else {
+        SetModalBodyText('Some Issue occured'); // will make changes
+      }
+    } catch (err) {
+      console.log('some error occurred', err);
+    } finally {
+      openModal();
+      fetchPersonalDetails();
+    }
+  };
 
   return (
     <View style={styles.mainContainer}>
       <View style={styles.dataContainer}>
         <Text>First Name</Text>
-        <TextInput value={userDetails.first_name} style={styles.textInput} />
+        <TextInput
+          value={userDetails.first_name}
+          style={styles.textInput}
+          onChangeText={text =>
+            setUserDetails(prev => ({...prev, first_name: text}))
+          }
+        />
         <Text>Last Name</Text>
-        <TextInput value={userDetails.last_name} style={styles.textInput} />
-        {/* <Text>Username</Text>
-        <TextInput value={userDetails.username} style={styles.textInput} /> */}
+        <TextInput
+          value={userDetails.last_name}
+          style={styles.textInput}
+          onChangeText={text =>
+            setUserDetails(prev => ({...prev, last_name: text}))
+          }
+        />
         <Text>Date of Birth</Text>
         <TouchableOpacity onPress={() => setOpen(true)}>
           <View
@@ -69,7 +108,6 @@ const UpdatePersonalInfo = props => {
               flexDirection: 'row',
               // justifyContent: 'space-around',
               backgroundColor: 'white',
-              padding: 10,
             }}>
             <TextInput
               value={
@@ -96,7 +134,10 @@ const UpdatePersonalInfo = props => {
               }
               onConfirm={date => {
                 setOpen(false);
-                setUserDetails(prev => ({...prev, dob: date}));
+                setUserDetails(prev => ({
+                  ...prev,
+                  dob: date.toISOString().split('T')[0],
+                }));
               }}
               onCancel={() => {
                 setOpen(false);
@@ -105,17 +146,38 @@ const UpdatePersonalInfo = props => {
           </View>
         </TouchableOpacity>
         <Text>Password</Text>
-        <TextInput style={styles.textInput} secureTextEntry={true} />
+        <TextInput
+          style={styles.textInput}
+          value={userDetails.password}
+          secureTextEntry={true}
+          placeholder="***********"
+          onChangeText={text =>
+            setUserDetails(prev => ({...prev, password: text}))
+          }
+        />
         <Text>Email</Text>
-        <TextInput value={userDetails.email} style={styles.textInput} />
+        <TextInput
+          value={userDetails.email}
+          style={styles.textInput}
+          onChangeText={text =>
+            setUserDetails(prev => ({...prev, email: text}))
+          }
+        />
         <Text>Phone Number</Text>
-        <TextInput value={userDetails.phone_number} style={styles.textInput} />
+        <TextInput
+          value={userDetails.phone_number}
+          style={styles.textInput}
+          onChangeText={text =>
+            setUserDetails(prev => ({...prev, phone_number: text}))
+          }
+        />
       </View>
       <View style={styles.button}>
-        <Button title="Save Changes" onPress={openModal} />
+        {/* <Button title="Save Changes" onPress={openModal} /> */}
+        <Button title="Save Changes" onPress={setPersonalDetails} />
       </View>
       <View style={styles.button}>
-        <Button title="Cancel" />
+        <Button title="Cancel" onPress={fetchPersonalDetails} />
       </View>
 
       <Modal
@@ -128,7 +190,7 @@ const UpdatePersonalInfo = props => {
         }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>Changes Saved Successfully!</Text>
+            <Text style={styles.modalText}>{modalBodyText}</Text>
             <Button title="Close" onPress={closeModal} />
           </View>
         </View>

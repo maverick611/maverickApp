@@ -117,8 +117,6 @@ const LongQuestionnaire = props => {
       setErrorText('Please answer all the questions');
       return;
     }
-    // console.log(submitURL);
-    // return;
     const response = await fetch(submitURL, {
       method: 'POST',
       headers: {
