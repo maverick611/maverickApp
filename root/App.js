@@ -25,7 +25,7 @@ import HorizontalBarChart from './components/HorizontalBarChart/HorizontalBarCha
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const MyTabs = props => {
-  const {loginToken} = props;
+  const {loginToken, newSubmissionAddedlq} = props;
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
@@ -53,7 +53,13 @@ const MyTabs = props => {
       </Tab.Screen>
       <Tab.Screen name="Notify" component={Notify} />
       <Tab.Screen name="Report">
-        {props => <Reports {...props} loginToken={loginToken} />}
+        {props => (
+          <Reports
+            {...props}
+            loginToken={loginToken}
+            newSubmissionAddedlq={newSubmissionAddedlq}
+          />
+        )}
       </Tab.Screen>
       <Tab.Screen name="Resources" component={Progress} />
       <Tab.Screen name="Daily">
@@ -66,11 +72,18 @@ const MyTabs = props => {
 const App = () => {
   const [isAuth, setIsAuth] = useState(false);
   const [loginToken, setLoginToken] = useState(null);
+  const [newSubmissionAddedlq, SetNewSubmissionlq] = useState(0);
   return isAuth ? (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="none" options={{headerShown: false}}>
-          {props => <MyTabs {...props} loginToken={loginToken} />}
+          {props => (
+            <MyTabs
+              {...props}
+              loginToken={loginToken}
+              newSubmissionAddedlq={newSubmissionAddedlq}
+            />
+          )}
         </Stack.Screen>
         <Stack.Screen name="Profile">
           {props => (
@@ -110,6 +123,7 @@ const App = () => {
               {...props}
               isItDailyQuestions={false}
               loginToken={loginToken}
+              SetNewSubmissionlq={SetNewSubmissionlq}
             />
           )}
         </Stack.Screen>

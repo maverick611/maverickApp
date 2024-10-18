@@ -75,7 +75,8 @@ const renderQuestion = (
 
 const LongQuestionnaire = props => {
   const [todayQ, setTodayQ] = useState(false);
-  const {navigation, isItDailyQuestions, loginToken} = props;
+  const {navigation, isItDailyQuestions, loginToken, SetNewSubmissionlq} =
+    props;
   const route = useRoute();
 
   try {
@@ -116,6 +117,8 @@ const LongQuestionnaire = props => {
       setErrorText('Please answer all the questions');
       return;
     }
+    // console.log(submitURL);
+    // return;
     const response = await fetch(submitURL, {
       method: 'POST',
       headers: {
@@ -144,6 +147,7 @@ const LongQuestionnaire = props => {
     } catch (error) {
       console.log(error);
     }
+    SetNewSubmissionlq(a => a + 1);
   };
   const [questions, setLongQuestionnaire] = useState([]);
   useEffect(() => {

@@ -15,7 +15,7 @@ const Reports = props => {
     const minutes = date.getUTCMinutes().toString().padStart(2, '0');
     return [`Report on ${day}/${month}/${year}`, `at ${hours}:${minutes}`];
   };
-  const {navigation, loginToken} = props;
+  const {navigation, loginToken, newSubmissionAddedlq} = props;
   const [allReports, setAllReports] = useState([]);
   const responseDates = [
     ['Report on 09/27/2024', 'at 2:30PM'],
@@ -51,11 +51,25 @@ const Reports = props => {
         },
       });
       const data = await response.json();
-      console.log('datajjjjjjj', JSON.stringify(data));
       setAllReports(data);
     };
     fetchGetSubmission();
   }, []);
+
+  useEffect(() => {
+    const fetchGetSubmission = async () => {
+      const response = await fetch('http://10.0.2.2:3000/reports', {
+        method: 'GET',
+        headers: {
+          authorization: `Bearer ${loginToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setAllReports(data);
+    };
+    fetchGetSubmission();
+  }, [newSubmissionAddedlq]);
 
   return (
     <View>

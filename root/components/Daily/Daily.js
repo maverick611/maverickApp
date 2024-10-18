@@ -39,7 +39,6 @@ const Daily = props => {
   return (
     <View style={styles.mainContainer}>
       <Header />
-      {/* <DailyQuestionsResponse /> */}
       <View style={{padding: 20}}>
         <Button
           onPress={() =>
