@@ -1382,6 +1382,39 @@ const update_personal_info = async (req, res) => {
 // }
 
 
+const get_profile_picture = async (req, res) => {
+    const user_id = req.userId; 
+
+    try {
+        const result = await pool.query(`
+            SELECT profile_picture_link
+            FROM users
+            WHERE user_id = $1
+        `, [user_id]);
+
+        if (result.rows.length === 0 || !result.rows[0].profile_picture_link) {
+            return res.status(404).json({ message: 'Profile picture not found.' });
+        }
+
+        const profilePictureLink = result.rows[0].profile_picture_link;
+        res.status(200).json({ profile_picture_link: profilePictureLink });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+//req body
+
+//just token
+
+//response body
+
+//{
+//     "profile_picture_link": "https://drive.google.com/file/d/1tUuNGTw8kx4zOEAhIbj_Jr0p2BcsdZrO/view?usp=drive_link"
+// }
+
 
 
 
@@ -1500,7 +1533,7 @@ const update_personal_info = async (req, res) => {
 
 module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, 
     daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
-    get_personal_info, update_personal_info
+    get_personal_info, update_personal_info, get_profile_picture
 
 };
 
