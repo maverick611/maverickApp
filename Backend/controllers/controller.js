@@ -559,7 +559,108 @@ const reports = async (req, res) => {
 };
 
 
+// res body
 
+// [
+//     {
+//         "submission_id": "34fa64dc-3a28-42ba-9b47-b21ad30899bf",
+//         "timestamp": "2024-10-14T03:36:13.904Z",
+//         "risk_assessments": [
+//             {
+//                 "disease_id": "1",
+//                 "disease_name": "Cardiovascular Disease Risk",
+//                 "risk_score": 1
+//             },
+//             {
+//                 "disease_id": "2",
+//                 "disease_name": "Diabetes and Metabolic Syndrome Risk",
+//                 "risk_score": 1
+//             },
+//             {
+//                 "disease_id": "9",
+//                 "disease_name": "Stroke Risk",
+//                 "risk_score": 0
+//             }
+//         ]
+//     },
+//     {
+//         "submission_id": "d0db1eca-6c5d-413b-b63d-0a45ead448df",
+//         "timestamp": "2024-10-14T03:20:23.953Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "d2618715-7744-4ab2-a65d-9b49cdadfc35",
+//         "timestamp": "2024-10-14T02:20:33.327Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "14d6e534-2903-4205-86db-bd9f163a45cf",
+//         "timestamp": "2024-10-14T02:20:21.485Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "a84fc9ee-17bf-4268-817d-9f8865397934",
+//         "timestamp": "2024-10-14T02:18:39.458Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "63d60bc1-8104-4431-8289-32743ff0cd4d",
+//         "timestamp": "2024-10-14T02:18:33.588Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "377ad7f3-9430-4721-98b6-5fe6747d9b74",
+//         "timestamp": "2024-10-14T02:18:28.001Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "89036f60-e1aa-4b0a-b337-43a771c7dde7",
+//         "timestamp": "2024-10-14T02:18:21.041Z",
+//         "risk_assessments": []
+//     },
+//     {
+//         "submission_id": "df5deea3-1a8e-4d0c-b217-9f913ace26b4",
+//         "timestamp": "2024-10-13T21:20:37.224Z",
+//         "risk_assessments": [
+//             {
+//                 "disease_id": "1",
+//                 "disease_name": "Cardiovascular Disease Risk",
+//                 "risk_score": 1
+//             },
+//             {
+//                 "disease_id": "2",
+//                 "disease_name": "Diabetes and Metabolic Syndrome Risk",
+//                 "risk_score": 1
+//             },
+//             {
+//                 "disease_id": "9",
+//                 "disease_name": "Stroke Risk",
+//                 "risk_score": 1
+//             }
+//         ]
+//     },
+//     {
+//         "submission_id": "0bd7393f-5aeb-4536-a590-a7d05e92b64d",
+//         "timestamp": "2024-10-13T21:20:14.686Z",
+//         "risk_assessments": [
+//             {
+//                 "disease_id": "1",
+//                 "disease_name": "Cardiovascular Disease Risk",
+//                 "risk_score": 1
+//             },
+//             {
+//                 "disease_id": "2",
+//                 "disease_name": "Diabetes and Metabolic Syndrome Risk",
+//                 "risk_score": 1
+//             },
+//             {
+//                 "disease_id": "9",
+//                 "disease_name": "Stroke Risk",
+//                 "risk_score": 0
+//             }
+//         ]
+//     }
+// ]
 
 //function for retrieving information for a certain submission
 
@@ -1310,10 +1411,9 @@ const get_personal_info = async (req, res) => {
 // }
 
 
-
 const update_personal_info = async (req, res) => {
     const user_id = req.userId; 
-    const { first_name, last_name, username, email, phone_number, dob } = req.body;
+    const { first_name, last_name, username, email, phone_number, dob, password } = req.body;
 
     try {
         const usernameCheckResult = await pool.query(`
@@ -1334,9 +1434,10 @@ const update_personal_info = async (req, res) => {
                 username = $3, 
                 email = $4, 
                 phone = $5, 
-                dob = $6
+                dob = $6,
+                password = $7  -- Include password field
             WHERE 
-                user_id = $7
+                user_id = $8
             RETURNING 
                 first_name, 
                 last_name, 
@@ -1353,6 +1454,7 @@ const update_personal_info = async (req, res) => {
             email, 
             phone_number, 
             dob, 
+            password,  
             user_id
         ]);
 
@@ -1369,8 +1471,7 @@ const update_personal_info = async (req, res) => {
     }
 };
 
-//both req and res have same bodies
-
+// Example request body
 // {
 //     "first_name": "dummy_firstName_7",
 //     "last_name": "dummy_lastName_6",
