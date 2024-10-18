@@ -1112,6 +1112,8 @@ const daily_reports = async (req, res) => {
 
 //retrieves only daily questions submissions
 
+
+
 const daily_get_submission = async (req, res) => {
     const { submission_id } = req.body; 
 
@@ -1301,6 +1303,80 @@ const get_personal_info = async (req, res) => {
 
 
 
+const update_personal_info = async (req, res) => {
+    const user_id = req.userId; 
+    const { first_name, last_name, username, email, phone_number, dob } = req.body;
+
+    try {
+        const usernameCheckResult = await pool.query(`
+            SELECT user_id 
+            FROM users 
+            WHERE username = $1 AND user_id != $2
+        `, [username, user_id]);
+
+        if (usernameCheckResult.rows.length > 0) {
+            return res.status(409).json({ message: 'Username is already in use. Please choose a different username.' });
+        }
+
+        const updateQuery = `
+            UPDATE users
+            SET 
+                first_name = $1, 
+                last_name = $2, 
+                username = $3, 
+                email = $4, 
+                phone = $5, 
+                dob = $6
+            WHERE 
+                user_id = $7
+            RETURNING 
+                first_name, 
+                last_name, 
+                username, 
+                email, 
+                phone AS phone_number, 
+                TO_CHAR(dob, 'YYYY-MM-DD') AS dob
+        `;
+
+        const updatedUser = await pool.query(updateQuery, [
+            first_name, 
+            last_name, 
+            username, 
+            email, 
+            phone_number, 
+            dob, 
+            user_id
+        ]);
+
+        if (updatedUser.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const updatedInfo = updatedUser.rows[0];
+
+        res.status(200).json(updatedInfo); 
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+//both req and res have same bodies
+
+// {
+//     "first_name": "dummy_firstName_7",
+//     "last_name": "dummy_lastName_6",
+//     "username": "dummy_username_6",
+//     "email": "dummy_6@gmail.com", // Change will require confirmation
+//     "password": "Pass@123", // Change will require confirmation
+//     "phone_number": "+1 716-555-0000", // Change will require confirmation
+//     "dob": "1990-01-01"
+// }
+
+
+
+
+
 // let temporaryUserUpdates = {}; 
 
 // const update_personal_info = async (req, res) => {
@@ -1416,7 +1492,7 @@ const get_personal_info = async (req, res) => {
 
 module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, 
     daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
-    get_personal_info, 
+    get_personal_info, update_personal_info
 
 };
 
