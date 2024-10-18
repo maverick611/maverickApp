@@ -474,13 +474,21 @@ const home = async (req, res) => {
 //reports functionm
 
 const reports = async (req, res) => {
-    const user_id = req.userId; 
+    const user_id = req.userId;
 
     try {
+        // Exclude submissions related to "daily"
         const submissionsResult = await pool.query(`
             SELECT submission_id, "timestamp"
             FROM submissions
             WHERE user_id = $1
+            AND submission_id NOT IN (
+                SELECT DISTINCT r.submission_id
+                FROM responses r
+                JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
+                JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
+                WHERE cd.disease_name = 'daily'
+            )
             ORDER BY "timestamp" DESC
             LIMIT 10
         `, [user_id]);
@@ -527,7 +535,7 @@ const reports = async (req, res) => {
 
             const riskAssessments = Object.keys(diseaseWeights).map(disease_id => {
                 const { disease_name, selected_weights, total_weight } = diseaseWeights[disease_id];
-                const risk_score = total_weight ? selected_weights / total_weight : 0; 
+                const risk_score = total_weight ? selected_weights / total_weight : 0;
 
                 return {
                     disease_id,
@@ -539,7 +547,7 @@ const reports = async (req, res) => {
             return {
                 submission_id: submission.submission_id,
                 timestamp: submission.timestamp,
-                risk_assessments: riskAssessments 
+                risk_assessments: riskAssessments
             };
         }));
 
