@@ -288,7 +288,7 @@ const questionnaire = async (req, res) => {
 // [
 //     {
 //         "question_id": 1,
-//         "question": "Do you sit for more than 4 hours a day?    ",
+//         "question": "Do you sit for more than 4 hours a day?",
 //         "options": [
 //             {
 //                 "id": 1,
@@ -296,26 +296,6 @@ const questionnaire = async (req, res) => {
 //             },
 //             {
 //                 "id": 2,
-//                 "text": "no"
-//             },
-//             {
-//                 "id": 17,
-//                 "text": "yes"
-//             },
-//             {
-//                 "id": 36,
-//                 "text": "yes"
-//             },
-//             {
-//                 "id": 37,
-//                 "text": "no"
-//             },
-//             {
-//                 "id": 42,
-//                 "text": "yes"
-//             },
-//             {
-//                 "id": 43,
 //                 "text": "no"
 //             }
 //         ],
@@ -335,20 +315,11 @@ const questionnaire = async (req, res) => {
 //             {
 //                 "id": 4,
 //                 "text": "no"
-//             },
-//             {
-//                 "id": 5,
-//                 "text": "yes"
-//             },
-//             {
-//                 "id": 6,
-//                 "text": "no"
 //             }
 //         ],
 //         "type": "single_choice",
 //         "options_selected": []
 //     },
-    
 
 
 
