@@ -471,41 +471,39 @@ const home = async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+//reports functionm
+
+
+
+
+
 //reports functionm
 
 const reports = async (req, res) => {
-    const user_id = req.userId;
+    const user_id = req.userId; 
 
     try {
-        // Exclude submissions related to "daily"
         const submissionsResult = await pool.query(`
             SELECT submission_id, "timestamp"
             FROM submissions
             WHERE user_id = $1
-            AND submission_id NOT IN (
-                SELECT r.submission_id
-                FROM responses r
-                JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
-                JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
-                WHERE cd.disease_name = 'daily'
-            )
             ORDER BY "timestamp" DESC
             LIMIT 10
         `, [user_id]);
 
-        if (submissionsResult.rows.length === 0) {
-            return res.status(200).json([]);
-        }
-
         const responseArray = await Promise.all(submissionsResult.rows.map(async (submission) => {
-            const { submission_id, timestamp } = submission;
-
-            // Get responses for each submission
             const responsesResult = await pool.query(`
-                SELECT r.question_id, r.answer
-                FROM responses r
-                WHERE r.submission_id = $1
-            `, [submission_id]);
+                SELECT question_id, answer
+                FROM responses
+                WHERE submission_id = $1
+            `, [submission.submission_id]);
 
             const diseaseWeights = {};
             const totalWeights = {};
@@ -513,7 +511,6 @@ const reports = async (req, res) => {
             for (const response of responsesResult.rows) {
                 const { question_id, answer } = response;
 
-                // Get disease weightage based on the question and answer
                 const weightQuery = `
                     SELECT w.disease_id, d.disease_name, w.weightage
                     FROM questions_disease_weightage w
@@ -524,7 +521,6 @@ const reports = async (req, res) => {
                 
                 const weightValues = await pool.query(weightQuery, [question_id, answer]);
 
-                // Calculate selected weights and total weights for each disease
                 weightValues.rows.forEach(row => {
                     const { disease_id, disease_name, weightage } = row;
 
@@ -537,14 +533,14 @@ const reports = async (req, res) => {
                     }
 
                     diseaseWeights[disease_id].selected_weights += weightage;
-                    diseaseWeights[disease_id].total_weight += weightage;
+
+                    diseaseWeights[disease_id].total_weight += weightage; 
                 });
             }
 
-            // Ensure that risk assessments are defined even if no weights are found
-            const risk_assessments = Object.keys(diseaseWeights).map(disease_id => {
+            const riskAssessments = Object.keys(diseaseWeights).map(disease_id => {
                 const { disease_name, selected_weights, total_weight } = diseaseWeights[disease_id];
-                const risk_score = total_weight ? (selected_weights / total_weight) : 0;
+                const risk_score = total_weight ? selected_weights / total_weight : 0; 
 
                 return {
                     disease_id,
@@ -554,9 +550,9 @@ const reports = async (req, res) => {
             });
 
             return {
-                submission_id,
-                timestamp,
-                risk_assessments // Ensure this variable is always defined
+                submission_id: submission.submission_id,
+                timestamp: submission.timestamp,
+                risk_assessments: riskAssessments 
             };
         }));
 
@@ -566,6 +562,100 @@ const reports = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+// const reports = async (req, res) => {
+//     const user_id = req.userId;
+
+//     try {
+//         // Exclude submissions related to "daily"
+//         const submissionsResult = await pool.query(`
+//             SELECT submission_id, "timestamp"
+//             FROM submissions
+//             WHERE user_id = $1
+//             AND submission_id NOT IN (
+//                 SELECT r.submission_id
+//                 FROM responses r
+//                 JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
+//                 JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
+//                 WHERE cd.disease_name = 'daily'
+//             )
+//             ORDER BY "timestamp" DESC
+//             LIMIT 10
+//         `, [user_id]);
+
+//         if (submissionsResult.rows.length === 0) {
+//             return res.status(200).json([]);
+//         }
+
+//         const responseArray = await Promise.all(submissionsResult.rows.map(async (submission) => {
+//             const { submission_id, timestamp } = submission;
+
+//             // Get responses for each submission
+//             const responsesResult = await pool.query(`
+//                 SELECT r.question_id, r.answer
+//                 FROM responses r
+//                 WHERE r.submission_id = $1
+//             `, [submission_id]);
+
+//             const diseaseWeights = {};
+//             const totalWeights = {};
+
+//             for (const response of responsesResult.rows) {
+//                 const { question_id, answer } = response;
+
+//                 // Get disease weightage based on the question and answer
+//                 const weightQuery = `
+//                     SELECT w.disease_id, d.disease_name, w.weightage
+//                     FROM questions_disease_weightage w
+//                     JOIN chronic_diseases d ON w.disease_id = d.disease_id
+//                     JOIN options o ON w.options_id = o.options_id
+//                     WHERE w.question_id = $1 AND o.options = $2
+//                 `;
+                
+//                 const weightValues = await pool.query(weightQuery, [question_id, answer]);
+
+//                 // Calculate selected weights and total weights for each disease
+//                 weightValues.rows.forEach(row => {
+//                     const { disease_id, disease_name, weightage } = row;
+
+//                     if (!diseaseWeights[disease_id]) {
+//                         diseaseWeights[disease_id] = {
+//                             disease_name,
+//                             selected_weights: 0,
+//                             total_weight: 0
+//                         };
+//                     }
+
+//                     diseaseWeights[disease_id].selected_weights += weightage;
+//                     diseaseWeights[disease_id].total_weight += weightage;
+//                 });
+//             }
+
+//             // Ensure that risk assessments are defined even if no weights are found
+//             const risk_assessments = Object.keys(diseaseWeights).map(disease_id => {
+//                 const { disease_name, selected_weights, total_weight } = diseaseWeights[disease_id];
+//                 const risk_score = total_weight ? (selected_weights / total_weight) : 0;
+
+//                 return {
+//                     disease_id,
+//                     disease_name,
+//                     risk_score
+//                 };
+//             });
+
+//             return {
+//                 submission_id,
+//                 timestamp,
+//                 risk_assessments // Ensure this variable is always defined
+//             };
+//         }));
+//         console.log(responseArray)
+//         res.status(200).json(responseArray);
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
 
 
 // res body
