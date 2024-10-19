@@ -483,7 +483,7 @@ const reports = async (req, res) => {
             FROM submissions
             WHERE user_id = $1
             AND submission_id NOT IN (
-                SELECT DISTINCT r.submission_id
+                SELECT r.submission_id
                 FROM responses r
                 JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
                 JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
@@ -493,12 +493,19 @@ const reports = async (req, res) => {
             LIMIT 10
         `, [user_id]);
 
+        if (submissionsResult.rows.length === 0) {
+            return res.status(200).json([]);
+        }
+
         const responseArray = await Promise.all(submissionsResult.rows.map(async (submission) => {
+            const { submission_id, timestamp } = submission;
+
+            // Get responses for each submission
             const responsesResult = await pool.query(`
-                SELECT question_id, answer
-                FROM responses
-                WHERE submission_id = $1
-            `, [submission.submission_id]);
+                SELECT r.question_id, r.answer
+                FROM responses r
+                WHERE r.submission_id = $1
+            `, [submission_id]);
 
             const diseaseWeights = {};
             const totalWeights = {};
@@ -506,6 +513,7 @@ const reports = async (req, res) => {
             for (const response of responsesResult.rows) {
                 const { question_id, answer } = response;
 
+                // Get disease weightage based on the question and answer
                 const weightQuery = `
                     SELECT w.disease_id, d.disease_name, w.weightage
                     FROM questions_disease_weightage w
@@ -516,6 +524,7 @@ const reports = async (req, res) => {
                 
                 const weightValues = await pool.query(weightQuery, [question_id, answer]);
 
+                // Calculate selected weights and total weights for each disease
                 weightValues.rows.forEach(row => {
                     const { disease_id, disease_name, weightage } = row;
 
@@ -528,14 +537,14 @@ const reports = async (req, res) => {
                     }
 
                     diseaseWeights[disease_id].selected_weights += weightage;
-
-                    diseaseWeights[disease_id].total_weight += weightage; 
+                    diseaseWeights[disease_id].total_weight += weightage;
                 });
             }
 
-            const riskAssessments = Object.keys(diseaseWeights).map(disease_id => {
+            // Ensure that risk assessments are defined even if no weights are found
+            const risk_assessments = Object.keys(diseaseWeights).map(disease_id => {
                 const { disease_name, selected_weights, total_weight } = diseaseWeights[disease_id];
-                const risk_score = total_weight ? selected_weights / total_weight : 0;
+                const risk_score = total_weight ? (selected_weights / total_weight) : 0;
 
                 return {
                     disease_id,
@@ -545,9 +554,9 @@ const reports = async (req, res) => {
             });
 
             return {
-                submission_id: submission.submission_id,
-                timestamp: submission.timestamp,
-                risk_assessments: riskAssessments
+                submission_id,
+                timestamp,
+                risk_assessments // Ensure this variable is always defined
             };
         }));
 
@@ -1632,9 +1641,77 @@ const get_profile_picture = async (req, res) => {
 
 
 
-module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, reports, get_submission, submission_report, 
+const get_latest_submission =  async (req, res) => {
+
+    const user_id = req.userID
+    try {
+        const result = await pool.query(`
+            SELECT submission_id, timestamp
+            FROM submissions
+            ORDER BY timestamp DESC
+            LIMIT 1
+        `);
+        
+        if (result.rows.length > 0) {
+            res.status(200).json({
+                submission_id: result.rows[0].submission_id,
+                timestamp: result.rows[0].timestamp
+            });
+        } else {
+            res.status(404).json({ message: 'No submissions found' });
+        }
+    } catch (error) {
+        console.error('Error fetching latest submission:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+//req body
+
+//just token
+
+//res body
+
+// {
+//     "submission_id": "04232728-acf1-442a-ab43-5c2c9b35eee9",
+//     "timestamp": "2024-10-18T22:03:43.761Z"
+// }
+
+const get_daily_latest = async (req, res) => {
+    const user_id = req.userId;
+
+    try {
+        const result = await pool.query(`
+            SELECT s.submission_id, s.timestamp
+            FROM submissions s
+            JOIN responses r ON s.submission_id = r.submission_id
+            JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
+            JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
+            WHERE cd.disease_name = 'daily' AND s.user_id = $1
+            ORDER BY s.timestamp DESC
+            LIMIT 1
+        `, [user_id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({
+                submission_id: result.rows[0].submission_id,
+                timestamp: result.rows[0].timestamp
+            });
+        } else {
+            res.status(404).json({ message: 'No daily submissions found' });
+        }
+    } catch (error) {
+        console.error('Error fetching latest daily submission:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+
+module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, get_submission, submission_report, reports,
     daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
-    get_personal_info, update_personal_info, get_profile_picture
+    get_personal_info, update_personal_info, get_profile_picture, get_latest_submission,  get_daily_latest
+
 
 };
 

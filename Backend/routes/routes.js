@@ -13,9 +13,10 @@
 
 const express = require('express');
 const router = express.Router();
-const {login, signup, confirm_signup, auth, logout, home, questionnaire, questionnaire_responses, reports, get_submission, submission_report, 
+const {login, signup, confirm_signup, auth, logout, home, questionnaire, questionnaire_responses, get_submission, submission_report, 
     daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
-    get_personal_info,update_personal_info, get_profile_picture} = require('../controllers/controller');
+    get_personal_info,update_personal_info, get_profile_picture, get_daily_latest, reports,
+    get_latest_submission} = require('../controllers/controller');
 
 
 router.post('/login', login);
@@ -36,6 +37,6 @@ router.get('/get_personal_info', auth, get_personal_info)
 router.put('/update_personal_info', auth, update_personal_info)   //need changes
 // router.post('/confirm_personal_changes', auth, confirm_personal_changes). //need changes
 router.get('/get_profile_picture', auth, get_profile_picture);
-
-
+router.get('/get_latest_submission', auth, get_latest_submission)
+router.get('/get_daily_latest', auth, get_daily_latest)
 module.exports = router;
