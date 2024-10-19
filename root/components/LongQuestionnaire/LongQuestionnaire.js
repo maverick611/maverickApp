@@ -117,6 +117,13 @@ const LongQuestionnaire = props => {
       setErrorText('Please answer all the questions');
       return;
     }
+    console.log('submitURL', submitURL);
+    console.log(
+      'req body',
+      JSON.stringify(transformToDesiredStructure(currentAnswers)),
+    );
+    console.log('login token in long questionnaire', loginToken);
+
     const response = await fetch(submitURL, {
       method: 'POST',
       headers: {

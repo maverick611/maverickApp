@@ -45,7 +45,9 @@ const Login = props => {
       const result = await response.json();
       if (response.ok) {
         setIsAuth(true);
-        setLoginToken(result.token);
+        const aaaa = result.token;
+        console.log('Login token from login ', aaaa);
+        setLoginToken(aaaa);
       } else {
         showErrorMsg(JSON.stringify(result.error));
       }

@@ -3,9 +3,58 @@ import {Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Header from '../Header/Header';
 import {ScrollView} from 'react-native-gesture-handler';
-import {BarChart, Grid} from 'react-native-svg-charts';
-import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
+import {BarChart, XAxis} from 'react-native-svg-charts';
 const Reports = props => {
+  const getBarChart = () => {
+    const data = [
+      {value: 0.2, label: 'Jan'},
+      {value: 0.5, label: 'Feb'},
+      {value: 0.9, label: 'Mar'},
+      {value: 0.1, label: 'Apr'},
+      {value: 0.7, label: 'May'},
+    ];
+
+    // Function to determine bar color based on value
+    const fillColors = data.map(item => {
+      if (item.value <= 0.3) {
+        return 'green';
+      } else if (item.value > 0.3 && item.value < 0.8) {
+        return 'yellow';
+      } else {
+        return 'red';
+      }
+    });
+
+    // Prepare data for the BarChart
+    const barData = data.map((item, index) => ({
+      value: item.value,
+      svg: {
+        fill: fillColors[index],
+      },
+    }));
+
+    return (
+      <View style={{padding: 20}}>
+        <BarChart
+          style={{height: 200}}
+          data={barData}
+          yAccessor={({item}) => item.value}
+          spacingInner={0.2}
+          contentInset={{top: 10, bottom: 10}}
+          gridMin={0}
+          gridMax={1}
+        />
+        <XAxis
+          style={{marginTop: 10}}
+          data={data}
+          formatLabel={(value, index) => data[index].label}
+          contentInset={{left: 30, right: 30}}
+          svg={{fontSize: 12, fill: 'black'}}
+        />
+      </View>
+    );
+  };
+
   const formatReport = isoString => {
     const date = new Date(isoString);
     const day = date.getUTCDate().toString().padStart(2, '0');
@@ -57,42 +106,135 @@ const Reports = props => {
       }
     });
 
-    console.log('jjjjj', diseaseRiskDictionary);
-
+    return diseaseRiskDictionary;
     setBarChartData(diseaseRiskDictionary);
   };
 
-  useEffect(() => {
-    const fetchGetSubmission = async () => {
-      const response = await fetch('http://10.0.2.2:3000/reports', {
-        method: 'GET',
-        headers: {
-          authorization: `Bearer ${loginToken}`,
-          'Content-Type': 'application/json',
+  console.log(
+    'finalData',
+    JSON.stringify(
+      setBarChartDataFromReports([
+        {
+          submission_id: '34fa64dc-3a28-42ba-9b47-b21ad30899bf',
+          timestamp: '2024-10-14T03:36:13.904Z',
+          risk_assessments: [
+            {
+              disease_id: '1',
+              disease_name: 'Cardiovascular Disease Risk',
+              risk_score: 1,
+            },
+            {
+              disease_id: '2',
+              disease_name: 'Diabetes and Metabolic Syndrome Risk',
+              risk_score: 1,
+            },
+            {
+              disease_id: '9',
+              disease_name: 'Stroke Risk',
+              risk_score: 0,
+            },
+          ],
         },
-      });
-      const data = await response.json();
+        {
+          submission_id: 'd0db1eca-6c5d-413b-b63d-0a45ead448df',
+          timestamp: '2024-10-14T03:20:23.953Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: 'd2618715-7744-4ab2-a65d-9b49cdadfc35',
+          timestamp: '2024-10-14T02:20:33.327Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: '14d6e534-2903-4205-86db-bd9f163a45cf',
+          timestamp: '2024-10-14T02:20:21.485Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: 'a84fc9ee-17bf-4268-817d-9f8865397934',
+          timestamp: '2024-10-14T02:18:39.458Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: '63d60bc1-8104-4431-8289-32743ff0cd4d',
+          timestamp: '2024-10-14T02:18:33.588Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: '377ad7f3-9430-4721-98b6-5fe6747d9b74',
+          timestamp: '2024-10-14T02:18:28.001Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: '89036f60-e1aa-4b0a-b337-43a771c7dde7',
+          timestamp: '2024-10-14T02:18:21.041Z',
+          risk_assessments: [],
+        },
+        {
+          submission_id: 'df5deea3-1a8e-4d0c-b217-9f913ace26b4',
+          timestamp: '2024-10-13T21:20:37.224Z',
+          risk_assessments: [
+            {
+              disease_id: '1',
+              disease_name: 'Cardiovascular Disease Risk',
+              risk_score: 1,
+            },
+            {
+              disease_id: '2',
+              disease_name: 'Diabetes and Metabolic Syndrome Risk',
+              risk_score: 1,
+            },
+            {
+              disease_id: '9',
+              disease_name: 'Stroke Risk',
+              risk_score: 1,
+            },
+          ],
+        },
+        {
+          submission_id: '0bd7393f-5aeb-4536-a590-a7d05e92b64d',
+          timestamp: '2024-10-13T21:20:14.686Z',
+          risk_assessments: [
+            {
+              disease_id: '1',
+              disease_name: 'Cardiovascular Disease Risk',
+              risk_score: 1,
+            },
+            {
+              disease_id: '2',
+              disease_name: 'Diabetes and Metabolic Syndrome Risk',
+              risk_score: 1,
+            },
+            {
+              disease_id: '9',
+              disease_name: 'Stroke Risk',
+              risk_score: 0,
+            },
+          ],
+        },
+      ]),
+    ),
+  );
 
-      setAllReports(data);
-      setBarChartDataFromReports(data);
-    };
+  const fetchGetSubmission = async () => {
+    const response = await fetch('http://10.0.2.2:3000/reports', {
+      method: 'GET',
+      headers: {
+        authorization: `Bearer ${loginToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await response.json();
+    console.log('response from data', JSON.stringify(data));
+
+    setAllReports(data);
+    setBarChartDataFromReports(data);
+  };
+  useEffect(() => {
     fetchGetSubmission();
   }, []);
 
   useEffect(() => {
-    const fetchGetSubmission = async () => {
-      const response = await fetch('http://10.0.2.2:3000/reports', {
-        method: 'GET',
-        headers: {
-          authorization: `Bearer ${loginToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
-
-      setAllReports(data);
-      setBarChartDataFromReports(data);
-    };
     fetchGetSubmission();
   }, [newSubmissionAddedlq]);
 
@@ -189,12 +331,14 @@ const Reports = props => {
         </View>
         {console.log('barData', barChartData)}
 
-        {Object.keys(barChartData).length > 0 && (
+        {/* {Object.keys(barChartData).length > 0 && (
           <HorizontalBarChart
             data={barChartData['Obesity Risk']}
             needHorizontal={false}
           />
-        )}
+        )} */}
+
+        {getBarChart()}
       </ScrollView>
     </View>
   );

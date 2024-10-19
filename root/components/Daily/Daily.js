@@ -61,25 +61,26 @@ const Daily = props => {
             <Text style={{fontSize: 22}}>View history</Text>
           </View>
           <View>
-            {history.map((value, index) => {
-              return (
-                <View style={styles.eachHistoryHolder} key={index}>
-                  <View>
-                    <Text>{formatReport(value.timestamp)[0]}</Text>
-                    <Text>{formatReport(value.timestamp)[1]}</Text>
+            {history.length > 0 &&
+              history.map((value, index) => {
+                return (
+                  <View style={styles.eachHistoryHolder} key={index}>
+                    <View>
+                      <Text>{formatReport(value.timestamp)[0]}</Text>
+                      <Text>{formatReport(value.timestamp)[1]}</Text>
+                    </View>
+                    <Button
+                      title="See Response"
+                      onPress={() =>
+                        navigation.navigate('LongQuestionnaireResponses', {
+                          submission_id: value.submission_id,
+                          loginToken: loginToken,
+                        })
+                      }
+                    />
                   </View>
-                  <Button
-                    title="See Response"
-                    onPress={() =>
-                      navigation.navigate('LongQuestionnaireResponses', {
-                        submission_id: value.submission_id,
-                        loginToken: loginToken,
-                      })
-                    }
-                  />
-                </View>
-              );
-            })}
+                );
+              })}
           </View>
         </ScrollView>
       </View>

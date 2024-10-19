@@ -52,6 +52,7 @@ const MyTabs = props => {
         {props => <Home {...props} loginToken={loginToken} />}
       </Tab.Screen>
       <Tab.Screen name="Notify" component={Notify} />
+      <Tab.Screen name="bc" component={HorizontalBarChart} />
       <Tab.Screen name="Report">
         {props => (
           <Reports
