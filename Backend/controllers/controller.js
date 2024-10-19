@@ -1421,7 +1421,7 @@ const get_personal_info = async (req, res) => {
 
 
 
-let globalPendingChanges = {};  // Global variable to store pending changes
+let globalPendingChanges = {};  
 
 
 const update_personal_info = async (req, res) => {
@@ -1429,7 +1429,7 @@ const update_personal_info = async (req, res) => {
     const { first_name, last_name, username, email, phone_number, dob, password } = req.body;
 
     try {
-        // Check if the username is already taken
+
         const usernameCheckResult = await pool.query(`
             SELECT user_id 
             FROM users 
@@ -1440,7 +1440,6 @@ const update_personal_info = async (req, res) => {
             return res.status(409).json({ message: 'Username is already in use. Please choose a different username.' });
         }
 
-        // Fetch the current user details
         const userResult = await pool.query(`
             SELECT email, phone, password
             FROM users
@@ -1454,30 +1453,26 @@ const update_personal_info = async (req, res) => {
         const currentUser = userResult.rows[0];
         let confirmationRequired = false;
         const changesToConfirm = {
-            email: currentUser.email,  // Set current email by default
-            phone: currentUser.phone   // Set current phone number by default
+            email: currentUser.email,  
+            phone: currentUser.phone   
         };
 
-        // Check if the email has actually changed
         if (email && email !== currentUser.email) {
             confirmationRequired = true;
             changesToConfirm.email = email;
         }
 
-        // Check if the phone number has actually changed
         if (phone_number && phone_number !== currentUser.phone) {
             confirmationRequired = true;
             changesToConfirm.phone = phone_number;
         }
 
-        // Check if the password has actually changed (after hashing)
         if (password && !(await bcrypt.compare(password, currentUser.password))) {
             confirmationRequired = true;
-            const hashedPassword = await bcrypt.hash(password, 10);  // Hash new password
+            const hashedPassword = await bcrypt.hash(password, 10);  
             changesToConfirm.password = hashedPassword;
         }
 
-        // Only trigger confirmation if there are actual changes in email, phone, or password
         if (confirmationRequired) {
             globalPendingChanges[user_id] = {
                 ...changesToConfirm,
@@ -1487,13 +1482,10 @@ const update_personal_info = async (req, res) => {
             console.log('Stored pending changes:', globalPendingChanges[user_id]);
 
             return res.status(403).json({
-                message: 'Confirmation required for email, phone, or password change.',
-                email_code: '123456',  // These should be sent via email/SMS in a real system
-                phone_code: '123456'
+                message: 'Confirmation required for email, phone, or password change.'
             });
         }
 
-        // If no sensitive fields are being changed, directly update non-sensitive fields
         const updateQuery = `
             UPDATE users
             SET 
@@ -1536,6 +1528,9 @@ const update_personal_info = async (req, res) => {
     }
 };
 
+//pay attention to response codes, to distinguise flow
+
+
 //req body
 
 // {
@@ -1566,35 +1561,44 @@ const update_personal_info = async (req, res) => {
 
 
 
-
 const confirm_personal_changes = async (req, res) => {
-    const { emailCode, phoneCode } = req.body;  // Match the keys in the request body
+    const { emailCode, phoneCode } = req.body;  
     const user_id = req.userId;
 
-    // Retrieve pending changes from the global variable
     const pendingChanges = globalPendingChanges[user_id];
 
     if (!pendingChanges) {
         return res.status(400).json({ message: 'No pending changes to confirm.' });
     }
 
-    // Log the pending changes to see if email, phone, and password are present
     console.log('Pending Changes:', pendingChanges);
 
-    const { email, phone, password } = pendingChanges;
+    let { email, phone, password } = pendingChanges;
 
-    // Check confirmation codes (these should be dynamically generated and sent via email/SMS in a real system)
     if (emailCode !== '123456' || phoneCode !== '123456') {
         return res.status(403).json({ message: 'Invalid confirmation codes.' });
     }
 
     try {
-        // Ensure that email and phone are not null before updating
+
+        if (!password) {
+            const userResult = await pool.query(`
+                SELECT password
+                FROM users
+                WHERE user_id = $1
+            `, [user_id]);
+
+            if (userResult.rows.length === 0) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            password = userResult.rows[0].password; 
+        }
+
         if (!email || !phone) {
             return res.status(400).json({ message: 'Email or phone cannot be null.' });
         }
 
-        // Update the user's email, phone, and password in the database
         const updateQuery = `
             UPDATE users
             SET email = $1, phone = $2, password = $3
@@ -1602,7 +1606,6 @@ const confirm_personal_changes = async (req, res) => {
         `;
         await pool.query(updateQuery, [email, phone, password, user_id]);
 
-        // Clear pending changes from the global variable
         delete globalPendingChanges[user_id];
 
         res.status(200).json({ message: 'Changes confirmed and updated successfully.' });
@@ -1611,6 +1614,8 @@ const confirm_personal_changes = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+//pay attention to res codes to distinguise flow
 
 
 //req body
