@@ -4,7 +4,7 @@ import {Picker} from '@react-native-picker/picker';
 import Header from '../Header/Header';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BarChart, Grid} from 'react-native-svg-charts';
-
+import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
 const Reports = props => {
   const formatReport = isoString => {
     const date = new Date(isoString);
@@ -33,6 +33,34 @@ const Reports = props => {
 
   const fill = 'rgb(134, 65, 244)';
   const data = [50, 10, 40, 95, 10, 85, 11, 35];
+  const [barChartData, setBarChartData] = useState({});
+
+  const setBarChartDataFromReports = reports => {
+    let barData = [];
+    const diseaseRiskDictionary = {};
+
+    reports.forEach(report => {
+      const timestamp = report.timestamp;
+
+      if (report.risk_assessments && Array.isArray(report.risk_assessments)) {
+        report.risk_assessments.forEach(assessment => {
+          if (assessment.disease_name) {
+            if (!diseaseRiskDictionary[assessment.disease_name]) {
+              diseaseRiskDictionary[assessment.disease_name] = [];
+            }
+            diseaseRiskDictionary[assessment.disease_name].push({
+              label: timestamp.split('T')[0],
+              value: assessment.risk_score,
+            });
+          }
+        });
+      }
+    });
+
+    console.log('jjjjj', diseaseRiskDictionary);
+
+    setBarChartData(diseaseRiskDictionary);
+  };
 
   useEffect(() => {
     const fetchGetSubmission = async () => {
@@ -44,9 +72,9 @@ const Reports = props => {
         },
       });
       const data = await response.json();
-      console.log('daaatta', data);
 
       setAllReports(data);
+      setBarChartDataFromReports(data);
     };
     fetchGetSubmission();
   }, []);
@@ -61,108 +89,113 @@ const Reports = props => {
         },
       });
       const data = await response.json();
-      console.log('dataaa2', data);
 
       setAllReports(data);
+      setBarChartDataFromReports(data);
     };
     fetchGetSubmission();
   }, [newSubmissionAddedlq]);
 
   return (
-    <View>
-      <Header />
-      <View style={styles.ViewHistory}>
-        <ScrollView>
-          <View style={styles.ViewHistoryText}>
-            <Text>VIEW HISTORY</Text>
-          </View>
-          {allReports.map((report, index) => {
-            return (
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  borderWidth: 2,
-                  justifyContent: 'space-around',
-                  margin: 10,
-                  paddingBottom: 2,
-                  borderTopWidth: 0,
-                  borderRightWidth: 0,
-                  borderLeftWidth: 0,
-                }}
-                key={index}>
+    <View style={{height: '100%'}}>
+      <ScrollView>
+        <Header />
+        <View style={styles.ViewHistory}>
+          <ScrollView>
+            <View style={styles.ViewHistoryText}>
+              <Text>VIEW HISTORY</Text>
+            </View>
+            {allReports.map((report, index) => {
+              return (
                 <View
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                  }}>
-                  <Text>{formatReport(report.timestamp)[0]}</Text>
-                  <Text>{formatReport(report.timestamp)[1]}</Text>
-                </View>
-                <View style={{padding: 1}}>
-                  <View style={{margin: 1}}>
-                    <Button
-                      onPress={() =>
-                        navigation.navigate('LongQuestionnaireResponses', {
-                          submission_id: report.submission_id,
-                          loginToken: loginToken,
-                        })
-                      }
-                      title="View Response"
-                    />
+                    flexDirection: 'row',
+                    borderWidth: 2,
+                    justifyContent: 'space-around',
+                    margin: 10,
+                    paddingBottom: 2,
+                    borderTopWidth: 0,
+                    borderRightWidth: 0,
+                    borderLeftWidth: 0,
+                  }}
+                  key={index}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}>
+                    <Text>{formatReport(report.timestamp)[0]}</Text>
+                    <Text>{formatReport(report.timestamp)[1]}</Text>
                   </View>
-                  <View style={{margin: 1}}>
-                    <Button
-                      onPress={() => navigation.navigate('CertainReport')}
-                      title="View Report"
-                    />
+                  <View style={{padding: 1}}>
+                    <View style={{margin: 1}}>
+                      <Button
+                        onPress={() =>
+                          navigation.navigate('LongQuestionnaireResponses', {
+                            submission_id: report.submission_id,
+                            loginToken: loginToken,
+                          })
+                        }
+                        title="View Response"
+                      />
+                    </View>
+                    <View style={{margin: 1}}>
+                      <Button
+                        onPress={() => navigation.navigate('CertainReport')}
+                        title="View Report"
+                      />
+                    </View>
                   </View>
                 </View>
-              </View>
-            );
-          })}
-        </ScrollView>
-      </View>
-      <View
-        style={{
-          margin: 7,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              marginBottom: 10,
-            }}>
-            <Text style={{fontSize: 20}}>Select to view progress</Text>
-          </View>
-          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedValue}
-                style={styles.picker}
-                onValueChange={(itemValue, itemIndex) =>
-                  setSelectedValue(itemValue)
-                }>
-                {disease.map((value, index) => (
-                  <Picker.Item label={value} value={value} key={index} />
-                ))}
-              </Picker>
-            </View>
-          </View>
-          <View></View>
+              );
+            })}
+          </ScrollView>
         </View>
-      </View>
-      <BarChart
-        style={{height: 200}}
-        data={data}
-        svg={{fill}}
-        contentInset={{top: 30, bottom: 30}}></BarChart>
+        <View
+          style={{
+            margin: 7,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                marginBottom: 10,
+              }}>
+              <Text style={{fontSize: 20}}>Select to view progress</Text>
+            </View>
+            <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedValue}
+                  style={styles.picker}
+                  onValueChange={(itemValue, itemIndex) =>
+                    setSelectedValue(itemValue)
+                  }>
+                  {disease.map((value, index) => (
+                    <Picker.Item label={value} value={value} key={index} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+            <View></View>
+          </View>
+        </View>
+        {console.log('barData', barChartData)}
+
+        {Object.keys(barChartData).length > 0 && (
+          <HorizontalBarChart
+            data={barChartData['Obesity Risk']}
+            needHorizontal={false}
+          />
+        )}
+      </ScrollView>
     </View>
   );
 };

@@ -87,7 +87,7 @@ const LongQuestionnaire = props => {
   const [currentAnswers, setCurrentAnswers] = useState({});
   const [barChartData, setBarChartData] = useState([]);
   const [errorText, setErrorText] = useState('');
-  console.log('barChartData', barChartData);
+  console.log('barChartDataaaa', barChartData);
 
   const updateQuestionsAnswer = (option_id, question_id, questionType) => {
     if (questionType === 'single_choice') {
@@ -185,7 +185,7 @@ const LongQuestionnaire = props => {
       </Text>
     </View>
   ) : !isItDailyQuestions && todayQ ? (
-    <HorizontalBarChart data={barChartData} />
+    <HorizontalBarChart data={barChartData} needHorizontal={true} />
   ) : (
     <ScrollView style={{backgroundColor: 'rgb(226	244	254	)'}}>
       <View style={styles.container}>

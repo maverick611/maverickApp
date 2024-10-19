@@ -4,8 +4,8 @@ import {BarChart} from 'react-native-svg-charts';
 
 const HorizontalBarChart = props => {
   // let {data} = props;
-  console.log(props.data);
-
+  console.log('from ddddd', props.data);
+  const {needHorizontal} = props;
   const graphLabelMaker = {
     'Cardiovascular Disease Risk': 'Heart Disease Risk',
     'Diabetes and Metabolic Syndrome Risk': 'Diabetes',
@@ -24,11 +24,19 @@ const HorizontalBarChart = props => {
     return '#007900';
   };
 
-  let data = props.data.map(e => ({
-    value: e.value,
-    label: graphLabelMaker[e.label],
-    color: colorMapper(e.value),
-  }));
+  if (needHorizontal) {
+    var data = props.data.map(e => ({
+      value: e.value,
+      label: graphLabelMaker[e.label],
+      color: colorMapper(e.value),
+    }));
+  } else {
+    var data = props.data.map(e => ({
+      value: e.value,
+      label: e.label,
+      color: colorMapper(e.value),
+    }));
+  }
 
   data = data.filter(e => e.label != 'daily');
   const barData = data.map(item => ({
