@@ -190,84 +190,168 @@ const confirm_signup = async (req, res) => {
 
 
 
-
-
-
-
-
-//questionnare function
 const questionnaire = async (req, res) => {
+    const user_id = req.userId; 
     try {
-        const result = await pool.query(`
+
+        const lastSubmissionResult = await pool.query(`
+            SELECT "timestamp"
+            FROM submissions
+            WHERE user_id = $1
+            ORDER BY "timestamp" DESC
+            LIMIT 1
+        `, [user_id]);
+
+        if (lastSubmissionResult.rows.length > 0) {
+            const lastSubmissionDate = new Date(lastSubmissionResult.rows[0].timestamp);
+            const now = new Date();
+            const sixWeeksInMillis = 6 * 7 * 24 * 60 * 60 * 1000; 
+            const timeDiff = now - lastSubmissionDate;
+
+            if (timeDiff < sixWeeksInMillis) {
+                const remainingMillis = sixWeeksInMillis - timeDiff;
+                const remainingDays = Math.floor(remainingMillis / (24 * 60 * 60 * 1000)); 
+
+                return res.status(403).json({
+                    error: `You cannot submit again for another ${remainingDays} day(s). Please try again later.`
+                });
+            }
+        }
+
+        const draftResult = await pool.query(`
+            SELECT question_id, options_selected
+            FROM questionnaire_draft
+            WHERE user_id = $1
+        `, [user_id]);
+
+        const draftMap = {};
+        if (draftResult.rows.length > 0) {
+            draftResult.rows.forEach(row => {
+                draftMap[row.question_id] = row.options_selected;
+            });
+        }
+
+        const questionsResult = await pool.query(`
             SELECT 
                 q.question_id,
                 q.question,
                 q.question_type,
-                w.disease_id,
-                d.disease_name,
                 o.options_id AS option_id,
                 o.options AS option_text
             FROM 
                 questions q
             LEFT JOIN 
                 options o ON q.question_id = o.question_id
-            LEFT JOIN 
-                questions_disease_weightage w ON o.options_id = w.options_id AND q.question_id = w.question_id
-            LEFT JOIN 
-                chronic_diseases d ON w.disease_id = d.disease_id
             ORDER BY 
-                q.question_id, w.disease_id
+                q.question_id, o.options_id
         `);
 
-
         const questionsArray = [];
-        result.rows.forEach(row => {
+        const seenOptionsText = {}; 
 
+        questionsResult.rows.forEach(row => {
             let questionEntry = questionsArray.find(q => q.question_id === row.question_id);
-
             if (!questionEntry) {
-
                 questionEntry = {
                     question_id: row.question_id,
-                    question: row.question,
+                    question: row.question.trim(), 
                     options: [],
                     type: row.question_type,
-                    diseases: [] 
+                    options_selected: draftMap[row.question_id] || []
                 };
                 questionsArray.push(questionEntry);
+                seenOptionsText[row.question_id] = new Set(); 
             }
 
-            const optionExists = questionEntry.options.some(option => option.text === row.option_text);
-            if (!optionExists) {
+            if (!seenOptionsText[row.question_id].has(row.option_text)) {
                 questionEntry.options.push({
                     id: row.option_id,
-                    text: row.option_text
+                    text: row.option_text.trim() 
                 });
-            }
-
-            const diseaseEntry = {
-                disease_id: row.disease_id,
-                disease_name: row.disease_name
-            };
-
-            if (!questionEntry.diseases.some(d => d.disease_id === row.disease_id)) {
-                questionEntry.diseases.push(diseaseEntry);
+                seenOptionsText[row.question_id].add(row.option_text); 
             }
         });
 
-        questionsArray.forEach(question => {
-            question.diseases = question.diseases.map(d => ({
-                disease_id: d.disease_id,
-                disease_name: d.disease_name
-            }));
-        });
 
         res.status(200).json(questionsArray);
     } catch (error) {
-        console.error('error:', error);
+        console.error('Error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
+//response body
+
+//if a draft exists, the field with options_selected get populated with options ids.
+
+// [
+//     {
+//         "question_id": 1,
+//         "question": "Do you sit for more than 4 hours a day?    ",
+//         "options": [
+//             {
+//                 "id": 1,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 2,
+//                 "text": "no"
+//             },
+//             {
+//                 "id": 17,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 36,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 37,
+//                 "text": "no"
+//             },
+//             {
+//                 "id": 42,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 43,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "options_selected": [
+//             1
+//         ]
+//     },
+//     {
+//         "question_id": 2,
+//         "question": "Have you been diagnosed with high blood pressure?",
+//         "options": [
+//             {
+//                 "id": 3,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 4,
+//                 "text": "no"
+//             },
+//             {
+//                 "id": 5,
+//                 "text": "yes"
+//             },
+//             {
+//                 "id": 6,
+//                 "text": "no"
+//             }
+//         ],
+//         "type": "single_choice",
+//         "options_selected": []
+//     },
+    
+
+
+
 
 
 
@@ -1872,30 +1956,30 @@ const get_profile_picture = async (req, res) => {
 
 
 
-const get_latest_submission =  async (req, res) => {
+// const get_latest_submission =  async (req, res) => {
 
-    const user_id = req.userID
-    try {
-        const result = await pool.query(`
-            SELECT submission_id, timestamp
-            FROM submissions
-            ORDER BY timestamp DESC
-            LIMIT 1
-        `);
+//     const user_id = req.userID
+//     try {
+//         const result = await pool.query(`
+//             SELECT submission_id, timestamp
+//             FROM submissions
+//             ORDER BY timestamp DESC
+//             LIMIT 1
+//         `);
         
-        if (result.rows.length > 0) {
-            res.status(200).json({
-                submission_id: result.rows[0].submission_id,
-                timestamp: result.rows[0].timestamp
-            });
-        } else {
-            res.status(404).json({ message: 'No submissions found' });
-        }
-    } catch (error) {
-        console.error('Error fetching latest submission:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
+//         if (result.rows.length > 0) {
+//             res.status(200).json({
+//                 submission_id: result.rows[0].submission_id,
+//                 timestamp: result.rows[0].timestamp
+//             });
+//         } else {
+//             res.status(404).json({ message: 'No submissions found' });
+//         }
+//     } catch (error) {
+//         console.error('Error fetching latest submission:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// };
 
 //req body
 
@@ -1908,51 +1992,139 @@ const get_latest_submission =  async (req, res) => {
 //     "timestamp": "2024-10-18T22:03:43.761Z"
 // }
 
-const get_daily_latest = async (req, res) => {
-    const user_id = req.userId;
+// const get_daily_latest = async (req, res) => {
+//     const user_id = req.userId;
+
+//     try {
+//         const result = await pool.query(`
+//             SELECT s.submission_id, s.timestamp
+//             FROM submissions s
+//             JOIN responses r ON s.submission_id = r.submission_id
+//             JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
+//             JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
+//             WHERE cd.disease_name = 'daily' AND s.user_id = $1
+//             ORDER BY s.timestamp DESC
+//             LIMIT 1
+//         `, [user_id]);
+
+//         if (result.rows.length > 0) {
+//             res.status(200).json({
+//                 submission_id: result.rows[0].submission_id,
+//                 timestamp: result.rows[0].timestamp
+//             });
+//         } else {
+//             res.status(404).json({ message: 'No daily submissions found' });
+//         }
+//     } catch (error) {
+//         console.error('Error fetching latest daily submission:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// };
+
+
+//req body
+
+//just token
+
+//res body
+
+// {
+//     "submission_id": "04232728-acf1-442a-ab43-5c2c9b35eee9",
+//     "timestamp": "2024-10-18T22:03:43.761Z"
+// }
+
+
+
+//saving questionnaire draft
+
+const questionnaire_save_draft = async (req, res) => {
+    try {
+        const user_id = req.userId; // Assuming you're getting the user_id from the token
+        const { responses } = req.body; // This contains the draft questions and answers in the responses array
+
+        if (!responses || responses.length === 0) {
+            return res.status(400).json({ message: 'No data provided for the draft.' });
+        }
+
+        // Delete any existing draft for the user (as we overwrite the draft with new data)
+        await pool.query(`DELETE FROM questionnaire_draft WHERE user_id = $1`, [user_id]);
+
+        // Insert the new draft data
+        for (const response of responses) {
+            await pool.query(
+                `INSERT INTO questionnaire_draft (user_id, question_id, options_selected)
+                 VALUES ($1, $2, $3)`,
+                [user_id, response.question_id, response.options_selected]
+            );
+        }
+
+        return res.status(200).json({ message: 'Draft saved successfully.' });
+    } catch (error) {
+        console.error('Error saving draft:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+//request body 
+
+// {
+//     "responses": [
+//       {
+//         "question_id": 1,
+//         "options_selected": [1]  // Answered 
+//       },
+//       {
+//         "question_id": 2,
+//         "options_selected": []  // Unanswered
+//       },
+//       {
+//         "question_id": 3,
+//         "options_selected": [7]  // Answered 
+//       },
+
+
+
+//saving daily questions draft
+
+const daily_save_draft = async (req, res) => {
+    const { user_id, responses } = req.body;
 
     try {
-        const result = await pool.query(`
-            SELECT s.submission_id, s.timestamp
-            FROM submissions s
-            JOIN responses r ON s.submission_id = r.submission_id
-            JOIN questions_disease_weightage qdw ON r.question_id = qdw.question_id
-            JOIN chronic_diseases cd ON qdw.disease_id = cd.disease_id
-            WHERE cd.disease_name = 'daily' AND s.user_id = $1
-            ORDER BY s.timestamp DESC
-            LIMIT 1
+        // Check if a draft already exists for the user
+        const existingDraft = await pool.query(`
+            SELECT * FROM daily_draft 
+            WHERE user_id = $1
         `, [user_id]);
 
-        if (result.rows.length > 0) {
-            res.status(200).json({
-                submission_id: result.rows[0].submission_id,
-                timestamp: result.rows[0].timestamp
-            });
+        if (existingDraft.rows.length > 0) {
+            // Update existing draft
+            await pool.query(`
+                UPDATE daily_draft 
+                SET responses = $1, updated_at = NOW() 
+                WHERE user_id = $2
+            `, [JSON.stringify(responses), user_id]);
         } else {
-            res.status(404).json({ message: 'No daily submissions found' });
+            // Insert new draft
+            await pool.query(`
+                INSERT INTO daily_draft (user_id, responses, created_at, updated_at)
+                VALUES ($1, $2, NOW(), NOW())
+            `, [user_id, JSON.stringify(responses)]);
         }
+
+        res.status(200).json({ message: "Draft saved successfully" });
     } catch (error) {
-        console.error('Error fetching latest daily submission:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Error saving draft:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
 
-//req body
-
-//just token
-
-//res body
-
-// {
-//     "submission_id": "04232728-acf1-442a-ab43-5c2c9b35eee9",
-//     "timestamp": "2024-10-18T22:03:43.761Z"
-// }
 
 
 module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, get_submission, submission_report, reports,
     daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
-    get_personal_info, update_personal_info, get_profile_picture, get_latest_submission,  get_daily_latest, confirm_personal_changes
+    get_personal_info, update_personal_info, get_profile_picture,  confirm_personal_changes, daily_save_draft, questionnaire_save_draft
 
 
 };
