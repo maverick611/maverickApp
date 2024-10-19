@@ -1420,11 +1420,16 @@ const get_personal_info = async (req, res) => {
 // }
 
 
+
+let globalPendingChanges = {};  // Global variable to store pending changes
+
+
 const update_personal_info = async (req, res) => {
     const user_id = req.userId; 
     const { first_name, last_name, username, email, phone_number, dob, password } = req.body;
 
     try {
+        // Check if the username is already taken
         const usernameCheckResult = await pool.query(`
             SELECT user_id 
             FROM users 
@@ -1435,18 +1440,69 @@ const update_personal_info = async (req, res) => {
             return res.status(409).json({ message: 'Username is already in use. Please choose a different username.' });
         }
 
+        // Fetch the current user details
+        const userResult = await pool.query(`
+            SELECT email, phone, password
+            FROM users
+            WHERE user_id = $1
+        `, [user_id]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const currentUser = userResult.rows[0];
+        let confirmationRequired = false;
+        const changesToConfirm = {
+            email: currentUser.email,  // Set current email by default
+            phone: currentUser.phone   // Set current phone number by default
+        };
+
+        // Check if the email has actually changed
+        if (email && email !== currentUser.email) {
+            confirmationRequired = true;
+            changesToConfirm.email = email;
+        }
+
+        // Check if the phone number has actually changed
+        if (phone_number && phone_number !== currentUser.phone) {
+            confirmationRequired = true;
+            changesToConfirm.phone = phone_number;
+        }
+
+        // Check if the password has actually changed (after hashing)
+        if (password && !(await bcrypt.compare(password, currentUser.password))) {
+            confirmationRequired = true;
+            const hashedPassword = await bcrypt.hash(password, 10);  // Hash new password
+            changesToConfirm.password = hashedPassword;
+        }
+
+        // Only trigger confirmation if there are actual changes in email, phone, or password
+        if (confirmationRequired) {
+            globalPendingChanges[user_id] = {
+                ...changesToConfirm,
+                user_id
+            };
+
+            console.log('Stored pending changes:', globalPendingChanges[user_id]);
+
+            return res.status(403).json({
+                message: 'Confirmation required for email, phone, or password change.',
+                email_code: '123456',  // These should be sent via email/SMS in a real system
+                phone_code: '123456'
+            });
+        }
+
+        // If no sensitive fields are being changed, directly update non-sensitive fields
         const updateQuery = `
             UPDATE users
             SET 
                 first_name = $1, 
                 last_name = $2, 
                 username = $3, 
-                email = $4, 
-                phone = $5, 
-                dob = $6,
-                password = $7  -- Include password field
+                dob = $4
             WHERE 
-                user_id = $8
+                user_id = $5
             RETURNING 
                 first_name, 
                 last_name, 
@@ -1460,10 +1516,7 @@ const update_personal_info = async (req, res) => {
             first_name, 
             last_name, 
             username, 
-            email, 
-            phone_number, 
             dob, 
-            password,  
             user_id
         ]);
 
@@ -1473,16 +1526,20 @@ const update_personal_info = async (req, res) => {
 
         const updatedInfo = updatedUser.rows[0];
 
-        res.status(200).json(updatedInfo); 
+        res.status(200).json({
+            message: 'User information updated successfully.',
+            data: updatedInfo
+        }); 
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
 
-// Example request body
+//req body
+
 // {
-//     "first_name": "dummy_firstName_7",
+//     "first_name": "dummy_firstName_8",
 //     "last_name": "dummy_lastName_6",
 //     "username": "dummy_username_6",
 //     "email": "dummy_6@gmail.com", // Change will require confirmation
@@ -1490,6 +1547,85 @@ const update_personal_info = async (req, res) => {
 //     "phone_number": "+1 716-555-0000", // Change will require confirmation
 //     "dob": "1990-01-01"
 // }
+
+
+// res body
+
+
+// {
+//     "message": "User information updated successfully.",
+//     "data": {
+//         "first_name": "dummy_firstName_8",
+//         "last_name": "dummy_lastName_6",
+//         "username": "dummy_username_6",
+//         "email": "dummy_6@gmail.com",
+//         "phone_number": "+1 716-555-0000",
+//         "dob": "1990-01-01"
+//     }
+// }
+
+
+
+
+const confirm_personal_changes = async (req, res) => {
+    const { emailCode, phoneCode } = req.body;  // Match the keys in the request body
+    const user_id = req.userId;
+
+    // Retrieve pending changes from the global variable
+    const pendingChanges = globalPendingChanges[user_id];
+
+    if (!pendingChanges) {
+        return res.status(400).json({ message: 'No pending changes to confirm.' });
+    }
+
+    // Log the pending changes to see if email, phone, and password are present
+    console.log('Pending Changes:', pendingChanges);
+
+    const { email, phone, password } = pendingChanges;
+
+    // Check confirmation codes (these should be dynamically generated and sent via email/SMS in a real system)
+    if (emailCode !== '123456' || phoneCode !== '123456') {
+        return res.status(403).json({ message: 'Invalid confirmation codes.' });
+    }
+
+    try {
+        // Ensure that email and phone are not null before updating
+        if (!email || !phone) {
+            return res.status(400).json({ message: 'Email or phone cannot be null.' });
+        }
+
+        // Update the user's email, phone, and password in the database
+        const updateQuery = `
+            UPDATE users
+            SET email = $1, phone = $2, password = $3
+            WHERE user_id = $4
+        `;
+        await pool.query(updateQuery, [email, phone, password, user_id]);
+
+        // Clear pending changes from the global variable
+        delete globalPendingChanges[user_id];
+
+        res.status(200).json({ message: 'Changes confirmed and updated successfully.' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+//req body
+
+// {
+//     "phoneCode": "123456",
+//     "emailCode": "123456"
+// }
+
+//res body
+
+// {
+//     "message": "Changes confirmed and updated successfully."
+// }
+
 
 
 const get_profile_picture = async (req, res) => {
@@ -1707,10 +1843,21 @@ const get_daily_latest = async (req, res) => {
 };
 
 
+//req body
+
+//just token
+
+//res body
+
+// {
+//     "submission_id": "04232728-acf1-442a-ab43-5c2c9b35eee9",
+//     "timestamp": "2024-10-18T22:03:43.761Z"
+// }
+
 
 module.exports = {login, signup, logout, confirm_signup, auth, questionnaire, questionnaire_responses, home, get_submission, submission_report, reports,
     daily_questionnaire, daily_questionnaire_responses, daily_reports, daily_get_submission,
-    get_personal_info, update_personal_info, get_profile_picture, get_latest_submission,  get_daily_latest
+    get_personal_info, update_personal_info, get_profile_picture, get_latest_submission,  get_daily_latest, confirm_personal_changes
 
 
 };
