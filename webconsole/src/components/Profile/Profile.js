@@ -34,6 +34,7 @@ const Profile = (props) => {
         e.preventDefault();
         const data = new FormData(e.target);
         const requestBody = {
+            admin_id: userInfo.admin_id,
             first_name: data.get('first_name'),
             username: data.get('username'),
             last_name: data.get('last_name'),
@@ -138,11 +139,11 @@ const Profile = (props) => {
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label htmlFor="firstName">First Name</label>
-                                        <input className="form-control" type="text" value={userInfo.first_name} id="firstName" name="firstName" onChange={handleChangeInFirstName} />
+                                        <input className="form-control" type="text" value={userInfo.first_name} id="first_name" name="first_name" onChange={handleChangeInFirstName} />
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="lastName">Last Name</label>
-                                        <input type="text" id="lastName" value={userInfo.last_name} name="lastName" onChange={handleChangeInLastName} />
+                                        <input type="text" id="lastName" value={userInfo.last_name} name="last_name" onChange={handleChangeInLastName} />
                                     </div>
                                 </div>
                                 <div className="form-row">

@@ -94,12 +94,12 @@ const UserTable = (props) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username: newUser, updatedBy: props.username }),
+        body: JSON.stringify({ email: newUser, updatedBy: props.username }),
       });
 
       if (response.ok) {
         const addedUser = await response.json();
-        setExistingUsers([...existingUsers, addedUser]); // Add the new user to the state
+        setExistingUsers([...existingUsers, addedUser.admin]); // Add the new user to the state
         alert("User added successfully");
       } else {
         alert("Failed to add user");
@@ -132,7 +132,7 @@ const UserTable = (props) => {
               <h3>OR</h3>
               <div >
                 <label htmlFor="email">Email</label>
-                <input type="text" id="email" name="email" />
+                <input type="text" id="email" name="email" onChange={(e) => setNewUser(e.target.value)} />
               </div>
             </div>
           </form>
