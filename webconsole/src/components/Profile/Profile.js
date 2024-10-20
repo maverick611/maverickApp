@@ -97,84 +97,81 @@ const Profile = (props) => {
         setDialog({ open: false, message: "" });
     };
     return (
-        <div className="profile-container">
-            <NavBar userLoggesIn="true" username={userInfo.username} />
-            <div className="profile-content">
-                <SideBar access="true" tab="profile" username={userInfo.username} />
-                <div className='profile-section'>
-                    <div className="profile-info">
-                        <div className='center-user'><Avatar sx={{ width: 72, height: 72 }}>A</Avatar></div>
-                        <div >{userInfo.username}</div>
-                        <button className="profile-btn" onClick={() => setDialog({ open: true, message: `Update Password` })}>
-                            Update Password
-                        </button>
-                    </div>
-                    {alert.show && <Alert className="profile-form" onClose={() => setAlert({ show: false, message: '' })} variant="outlined" severity={alert.type}>
-                        {alert.message}
-                    </Alert>}
-                    {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} no={"Cancel"} yes={"Save"} action={handlePasswordUpdate} cancel={handleCancelDelete} >
-                        <form className='profile-form-password'>
-                            <div>
+        <div className="profile-content">
+            <SideBar access="true" tab="profile" />
+            <div className='profile-section'>
+                <div className="profile-info">
+                    <div className='center-user'><Avatar sx={{ width: 72, height: 72 }}>A</Avatar></div>
+                    <div >{userInfo.username}</div>
+                    <button className="profile-btn" onClick={() => setDialog({ open: true, message: `Update Password` })}>
+                        Update Password
+                    </button>
+                </div>
+                {alert.show && <Alert className="profile-form" onClose={() => setAlert({ show: false, message: '' })} variant="outlined" severity={alert.type}>
+                    {alert.message}
+                </Alert>}
+                {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} no={"Cancel"} yes={"Save"} action={handlePasswordUpdate} cancel={handleCancelDelete} >
+                    <form className='profile-form-password'>
+                        <div>
+                            <div className="form-group">
+                                <label htmlFor="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" name="password" />
+                            </div>
+                            <div className="form-row">
                                 <div className="form-group">
-                                    <label htmlFor="currentPassword">Current Password</label>
-                                    <input type="password" id="currentPassword" name="password" />
+                                    <label htmlFor="newPassword">Password</label>
+                                    <input type="password" id="newPassword" name="password" />
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="newPassword">Password</label>
-                                        <input type="password" id="newPassword" name="password" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="confirmPassword">Confirm Password</label>
-                                        <input type="password" id="confirmPassword" name="confirmPassword" />
-                                    </div>
+                                <div className="form-group">
+                                    <label htmlFor="confirmPassword">Confirm Password</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" />
                                 </div>
                             </div>
+                        </div>
+                    </form>
+                </DialogComponent>}
+                <Card sx={{ width: "80%" }}>
+                    <CardContent>
+                        <form className='profile-form' onSubmit={handlePersonalDetailsUpdate}>
+                            <h2>Personal Information</h2>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="firstName">First Name</label>
+                                    <input className="form-control" type="text" value={userInfo.first_name} id="first_name" name="first_name" onChange={handleChangeInFirstName} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="lastName">Last Name</label>
+                                    <input type="text" id="lastName" value={userInfo.last_name} name="last_name" onChange={handleChangeInLastName} />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="username">Username</label>
+                                    <input type="text" id="username" value={userInfo.username} name="username" onChange={handleChangeInUsername} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="phone">Phone Number</label>
+                                    <input type="tel" id="phone" name="phone" value={userInfo.phone} onChange={handleChangeInPhone} />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="email">Email</label>
+                                    <input type="email" id="email" name="email" value={userInfo.email} onChange={handleChangeInEmail} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="profilePicture">Profile Picture</label>
+                                    <input type="file" id="pp" name="profilepic" />
+                                </div>
+                            </div>
+                            <div className='profile-info'>
+                                <button type="submit" className="btn-submit">Save</button>
+                            </div>
                         </form>
-                    </DialogComponent>}
-                    <Card sx={{ width: "80%" }}>
-                        <CardContent>
-                            <form className='profile-form' onSubmit={handlePersonalDetailsUpdate}>
-                                <h2>Personal Information</h2>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="firstName">First Name</label>
-                                        <input className="form-control" type="text" value={userInfo.first_name} id="first_name" name="first_name" onChange={handleChangeInFirstName} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="lastName">Last Name</label>
-                                        <input type="text" id="lastName" value={userInfo.last_name} name="last_name" onChange={handleChangeInLastName} />
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="username">Username</label>
-                                        <input type="text" id="username" value={userInfo.username} name="username" onChange={handleChangeInUsername} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="phone">Phone Number</label>
-                                        <input type="tel" id="phone" name="phone" value={userInfo.phone} onChange={handleChangeInPhone} />
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="email">Email</label>
-                                        <input type="email" id="email" name="email" value={userInfo.email} onChange={handleChangeInEmail} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="profilePicture">Profile Picture</label>
-                                        <input type="file" id="pp" name="profilepic" />
-                                    </div>
-                                </div>
-                                <div className='profile-info'>
-                                    <button type="submit" className="btn-submit">Save</button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
-        </div >
+        </div>
     );
 };
 

@@ -7,13 +7,10 @@ import './Users.css';
 
 const Users = (props) => {
   return (
-    <div className="user-container">
-      <NavBar userLoggesIn="true" />
-      <div className="user-content">
-        <SideBar access="true" tab="users" />
-        <div className="user-main-content">
-          <UserTable username={props.username} />
-        </div>
+    <div className="user-content">
+      <SideBar access="true" tab="users" />
+      <div className="user-main-content">
+        <UserTable username={props.username} />
       </div>
     </div>
   );

@@ -33,8 +33,8 @@ const Login = (props, context) => {
 
       if (response.ok) {
         const data = await response.json();
-        // props.updateUser(data.user);
-        navigate('/profile', { state: { userInfo: data.user } });
+        props.updateUserInfo(data.user);
+        // navigate('dashboard/profile', { state: { userInfo: data.user } });
       } else {
         const data = await response.json();
         setErrorMessage(data.message || 'Invalid username or password');

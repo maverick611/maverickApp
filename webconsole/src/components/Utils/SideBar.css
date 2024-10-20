@@ -1,9 +1,10 @@
 /* Sidebar container styling */
 .sidebar {
-  width: 220px;
+  width: 14rem;
   background-color: #065392;
   height: 100vh;
-  overflow-y: auto;
+  margin-top: 4rem;
+  position: fixed;
 }
 
 /* Remove bullets from list and add padding */

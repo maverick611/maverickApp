@@ -5,7 +5,10 @@
   align-items: center;
   background-color: #d3e6c6;
   padding: 10px 20px;
-  height: 60px;
+  height: 4rem;
+  position: fixed;
+  width: 100%;
+  z-index: 1;
 }
 
 .nav-btns {

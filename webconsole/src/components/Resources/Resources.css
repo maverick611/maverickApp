@@ -11,8 +11,8 @@
 }
 
 .resource-main-content {
-  margin-top: 4rem;
-  margin-left: 2rem;
+  margin-top: 6rem;
+  margin-left: 16rem;
   margin-right: 2rem;
   width: 100%;
 }
@@ -69,10 +69,6 @@ button:hover {
 
 .text {
   flex-grow: 1;
-}
-
-.resource-section {
-  overflow-y: scroll;
 }
 
 .resource-section h2 {

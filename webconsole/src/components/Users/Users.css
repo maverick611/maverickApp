@@ -5,16 +5,23 @@
 
 .user-content {
   display: flex;
+  width: 100%;
 }
 
 .user-main-content {
   padding: 20px;
   width: 100%;
+  margin-top: 4rem;
+  margin-left: 14rem;
 }
 
 .user-search {
   margin-left: auto;
   text-align: right;
+}
+
+.user-bar-content {
+  display: flex;
 }
 
 .user-section {

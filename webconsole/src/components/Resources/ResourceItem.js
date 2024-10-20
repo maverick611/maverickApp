@@ -1,14 +1,23 @@
 import { Box, Button, Link, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
+import DialogComponent from '../Utils/Dialog';
 
-const ResourceItem = ({ key, item }) => {
+const ResourceItem = (props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState({
-    title: item.title,
-    description: item.description,
-    link: item.link
+    title: props.item.title,
+    description: props.item.description,
+    link: props.item.link
   });
+  const [dialogDelete, setDialogDelete] = useState({ open: false, message: '' });
 
+  const toggleDialog = () => {
+    setDialogDelete({ open: !dialogDelete.open, message: "" });
+  }
+  const handleDeleteClick = (item) => {
+    setDialogDelete({ open: true, message: `Are you sure you want to delete ${item.title}`, data: item });
+  }
   const handleEditClick = () => {
     setIsEditing(true);
   };
@@ -16,16 +25,16 @@ const ResourceItem = ({ key, item }) => {
   const handleCancelClick = () => {
     setIsEditing(false);
     setEditValues({
-      title: item.title,
-      description: item.description,
-      link: item.link
+      title: props.item.title,
+      description: props.item.description,
+      link: props.item.link
     });
   };
 
   const handleConfirmClick = () => {
-    // Here you would typically update the data source with editValues
     console.log('Updated values:', editValues);
     setIsEditing(false);
+    props.handleEditResource({ ...editValues, resource_id: props.item.resource_id });
   };
 
   const handleChange = (e) => {
@@ -36,24 +45,7 @@ const ResourceItem = ({ key, item }) => {
     }));
   };
   return (
-    // <Box key={key} sx={{ marginBottom: 2, padding: 1, borderBottom: '1px solid #ccc', display: "flex", justifyContent: 'space-between' }}>
-    //   <div className='resource-item'>
-    //     <Typography variant="body1"><strong>Title : </strong> {item.title}</Typography>
-    //     <Typography variant="body2"><strong>Description : </strong> {item.description}</Typography>
-    //     <Typography variant="body2">
-    //       <strong>Resource Link : </strong>
-    //       <Link href={`http://${item.link}`} target="_blank" rel="noopener noreferrer">
-    //         {item.link}
-    //       </Link>
-    //     </Typography>
-    //   </div>
-
-    //   <Box mt={1}>
-    //     <Button variant="contained" color="primary" size="small" sx={{ marginRight: 1 }}>Edit</Button>
-    //     <Button variant="contained" color="secondary" size="small">Delete</Button>
-    //   </Box>
-    // </Box>
-    <Box key={key} sx={{ marginBottom: 2, padding: 1, borderBottom: '1px solid #ccc', display: "flex", justifyContent: 'space-between' }}>
+    <Box key={props.key} sx={{ marginBottom: 2, padding: 1, borderBottom: '1px solid #ccc', display: "flex", justifyContent: 'space-between' }}>
       <div className='resource-item'>
         {isEditing ? (
           <>
@@ -64,7 +56,7 @@ const ResourceItem = ({ key, item }) => {
               onChange={handleChange}
               fullWidth
               margin="dense"
-              sx={{ '& .MuiInputBase-input': { padding: '4px' } }}
+              sx={{ '& .MuiInputBase-input': { padding: '8px' } }}
             />
             <TextField
               label="Description"
@@ -73,7 +65,7 @@ const ResourceItem = ({ key, item }) => {
               onChange={handleChange}
               fullWidth
               margin="dense"
-              sx={{ '& .MuiInputBase-input': { padding: '4px' } }}
+              sx={{ '& .MuiInputBase-input': { padding: '8px' } }}
             />
             <TextField
               label="Resource Link"
@@ -82,17 +74,17 @@ const ResourceItem = ({ key, item }) => {
               onChange={handleChange}
               fullWidth
               margin="dense"
-              sx={{ '& .MuiInputBase-input': { padding: '4px' } }}
+              sx={{ '& .MuiInputBase-input': { padding: '8px' } }}
             />
           </>
         ) : (
           <>
-            <Typography variant="body1"><strong>Title:</strong> {item.title}</Typography>
-            <Typography variant="body2"><strong>Description:</strong> {item.description}</Typography>
+            <Typography variant="body1"><strong>Title : </strong> {props.item.title}</Typography>
+            <Typography variant="body2"><strong>Description : </strong> {props.item.description}</Typography>
             <Typography variant="body2">
-              <strong>Resource Link:</strong>
-              <Link href={`http://${item.link}`} target="_blank" rel="noopener noreferrer">
-                {item.link}
+              <strong>Resource Link : </strong>
+              <Link href={`http://${props.item.link}`} target="_blank" rel="noopener noreferrer">
+                {props.item.link}
               </Link>
             </Typography>
           </>
@@ -102,25 +94,26 @@ const ResourceItem = ({ key, item }) => {
       <Box mt={1}>
         {isEditing ? (
           <>
-            <Button variant="contained" color="success" size="small" sx={{ marginRight: 1 }} onClick={handleConfirmClick}>
-              Confirm
-            </Button>
-            <Button variant="contained" color="default" size="small" onClick={handleCancelClick}>
+            <Button variant="contained" color="default" size="small" sx={{ marginRight: 1 }} onClick={handleCancelClick}>
               Cancel
+            </Button>
+            <Button variant="contained" color="success" size="small" onClick={handleConfirmClick}>
+              Confirm
             </Button>
           </>
         ) : (
           <>
-            <Button variant="contained" color="primary" size="small" sx={{ marginRight: 1 }} onClick={handleEditClick}>
-              Edit
+            <Button variant="contained" color="primary" size="small" sx={{ marginRight: 1, fontSize: "x-large" }} onClick={handleEditClick}>
+              <MdOutlineEdit />
             </Button>
-            <Button variant="contained" color="secondary" size="small">
-              Delete
+            <Button variant="contained" color="secondary" size="small" sx={{ marginRight: 1, fontSize: "x-large" }} onClick={() => handleDeleteClick(props.item)}>
+              <MdDeleteOutline />
             </Button>
           </>
         )}
       </Box>
-    </Box>
+      {dialogDelete.open && <DialogComponent openDialog={dialogDelete.open} alertMessage={dialogDelete.message} data={dialogDelete.data} no={"No"} yes={"Yes"} action={props.handleDeleteResource} cancel={toggleDialog} />}
+    </Box >
   );
 };
 

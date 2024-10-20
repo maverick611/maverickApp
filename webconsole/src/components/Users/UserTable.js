@@ -23,7 +23,7 @@ const UserTable = (props) => {
       flex: 0.3,
       renderCell: (user) => {
         console.log(user)
-        return <button className="revoke-btn" onClick={() => setDialogDelete({ open: true, message: `Are sure you want to delete ${user.row.username}?`, data: user.row.username })}>Revoke</button>;
+        return <button className="revoke-btn" onClick={() => setDialogDelete({ open: true, message: `Are sure you want to revoke access to ${user.row.username}?`, data: user.row.username })}>Revoke</button>;
       }
     },
   ];
@@ -118,20 +118,20 @@ const UserTable = (props) => {
     <div className="user-table">
       <div className='user-section'>
         <h3>Existing Admin Users</h3>
-        <div className='user-content'>
+        <div className='user-bar-content'>
           <button className="menu-btn" onClick={() => setDialog({ open: true, message: `Add User` })}>Add User</button>
           <SearchBar />
         </div>
         {dialog.open && <DialogComponent openDialog={dialog.open} alertMessage={dialog.message} no={"Cancel"} yes={"Add"} action={handleAddUser} cancel={handleCancelUser} >
           <form className='user-form' >
             <div>
-              <div >
-                <label htmlFor="username">Username</label>
+              <div style={{ textAlign: "left" }}>
+                <label htmlFor="username" ><strong>Username</strong></label>
                 <input type="text" id="username" name="username" onChange={(e) => setNewUser(e.target.value)} />
               </div>
               <h3>OR</h3>
-              <div >
-                <label htmlFor="email">Email</label>
+              <div style={{ textAlign: "left" }}>
+                <label htmlFor="email"><strong>Email</strong></label>
                 <input type="text" id="email" name="email" onChange={(e) => setNewUser(e.target.value)} />
               </div>
             </div>

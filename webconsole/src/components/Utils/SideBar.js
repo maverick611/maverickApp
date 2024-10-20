@@ -9,11 +9,11 @@ const Sidebar = (props) => {
   return (
     <div className="sidebar">
       <ul>
-        <li className={props.tab == 'profile' ? 'active' : ''} username={userInfo} onClick={() => navigate('/profile')}>Profile</li>
-        <li className={props.tab == 'users' ? 'active' : ''} username={userInfo} onClick={() => navigate('/users')}>Manage Users</li>
-        <li className={props.tab == 'questions' ? 'active' : ''} username={userInfo} onClick={() => navigate('/questions')}>Manage Questionnaire</li>
-        <li className={props.tab == 'resources' ? 'active' : ''} username={userInfo} onClick={() => navigate('/resources')}>Manage Resource</li>
-        <li className={props.tab == 'daily' ? 'active' : ''} username={userInfo} onClick={() => navigate('/daily-questions')}>Manage Daily Questionnaire</li>
+        <li className={props.tab == 'profile' ? 'active' : ''} onClick={() => navigate('/dashboad/profile')}>Profile</li>
+        <li className={props.tab == 'users' ? 'active' : ''} onClick={() => navigate('/dashboard/users')}>Manage Users</li>
+        <li className={props.tab == 'questions' ? 'active' : ''} onClick={() => navigate('/dashboard/questions')}>Manage Questionnaire</li>
+        <li className={props.tab == 'resources' ? 'active' : ''} onClick={() => navigate('/dashboard/resources')}>Manage Resource</li>
+        <li className={props.tab == 'daily' ? 'active' : ''} onClick={() => navigate('/dashboard/daily-questions')}>Manage Daily Questionnaire</li>
       </ul>
     </div>
   );
