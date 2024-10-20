@@ -155,10 +155,25 @@ const login = (req, res) => {
             }
 
             // If password matches, login is successful
-            res.status(200).json({ message: "Login successful", admin_id: user.admin_id, username: user.username });
+            // Return the user's details excluding 'updated_by', 'status', and 'password'
+            const { admin_id, username, first_name, last_name, email, phone, profile_picture_link } = user;
+
+            res.status(200).json({
+                message: "Login successful",
+                admin: {
+                    admin_id,
+                    username,
+                    first_name,
+                    last_name,
+                    email,
+                    phone,
+                    profile_picture_link,
+                }
+            });
         });
     });
 };
+
 
 
 
@@ -1020,6 +1035,54 @@ const getAdminByUsername = (req, res) => {
 };
 
 
-module.exports = {addResource,fetchResources,login,getAdmins,addAdmin,adminPersonalDetails,deleteAdmin,addQuestion,editQuestion,getQuestionsWithDetails,deleteQuestion,deactivateOption,addOption,editOption,getdailyQuestions,getAdminByUsername,updatePassword};
+const editResource = (req, res) => {
+    const { disease_name, resource_id, resources_desc, resource_link, resources_title } = req.body;
+
+    if (!disease_name || !resource_id || !resources_desc || !resource_link || !resources_title) {
+        return res.status(400).json({ error: "Please provide all required fields" });
+    }
+
+    // Step 1: Check if the disease exists
+    const disease_query = `SELECT disease_id FROM chronic_diseases WHERE disease_name = $1 AND status = 'active'`;
+    con.query(disease_query, [disease_name], (err, diseaseResult) => {
+        if (err) return res.status(500).json({ error: "Internal server error while fetching disease" });
+        if (diseaseResult.rows.length === 0) return res.status(404).json({ error: "Disease not found or inactive" });
+
+        const disease_id = diseaseResult.rows[0].disease_id;
+
+        // Step 2: Check if the resource exists and is active
+        const resource_query = `SELECT * FROM resources WHERE resource_id = $1 AND status = 'active'`;
+        con.query(resource_query, [resource_id], (err, resourceResult) => {
+            if (err) return res.status(500).json({ error: "Internal server error while fetching resource" });
+            if (resourceResult.rows.length === 0) return res.status(404).json({ error: "Resource not found or inactive" });
+
+            // Step 3: Update the resource details
+            const update_resource_query = `
+                UPDATE resources 
+                SET resources_desc = $1, resource_link = $2, resources_title = $3
+                WHERE resource_id = $4 AND status = 'active'
+                RETURNING resource_id, resources_desc, resource_link, resources_title, status`;
+
+            const update_values = [resources_desc, resource_link, resources_title, resource_id];
+
+            con.query(update_resource_query, update_values, (err, updateResult) => {
+                if (err) return res.status(500).json({ error: "Internal server error while updating resource" });
+
+                // Step 4: Send the updated resource details along with the disease_id
+                const updatedResource = updateResult.rows[0];
+                res.status(200).json({
+                    message: "Resource updated successfully",
+                    resource: updatedResource,
+                    disease_id: disease_id
+                });
+            });
+        });
+    });
+};
+
+
+
+
+module.exports = {addResource,fetchResources,login,getAdmins,addAdmin,adminPersonalDetails,deleteAdmin,addQuestion,editQuestion,getQuestionsWithDetails,deleteQuestion,deactivateOption,addOption,editOption,getdailyQuestions,getAdminByUsername,updatePassword,editResource};
 
 
