@@ -103,20 +103,67 @@ const fetchResources = (req, res) => {
 
 
 // Admin login function
+// const login = (req, res) => {
+//     const { username, password } = req.body;
+//     const query = `SELECT * FROM admins WHERE username = $1 AND password = $2`;
+//     con.query(query, [username, password], (err, result) => {
+//         if (err) return res.status(500).json({ error: "Internal server error" });
+//         if (result.rows.length > 0) {
+//             const user = result.rows[0];
+//             delete user.password;
+//             res.status(200).json({ message: "Login successful", user });
+//         } else {
+//             res.status(400).json({ message: "Invalid username or password" });
+//         }
+//     });
+// };
+
+
+// const bcrypt = require('bcryptjs');
+
 const login = (req, res) => {
     const { username, password } = req.body;
-    const query = `SELECT * FROM admins WHERE username = $1 AND password = $2`;
-    con.query(query, [username, password], (err, result) => {
-        if (err) return res.status(500).json({ error: "Internal server error" });
-        if (result.rows.length > 0) {
-            const user = result.rows[0];
-            delete user.password;
-            res.status(200).json({ message: "Login successful", user });
-        } else {
-            res.status(400).json({ message: "Invalid username or password" });
+
+    if (!username || !password) {
+        return res.status(400).json({ message: "Please provide both username and password" });
+    }
+
+    // Query to find the user by username
+    const findUserQuery = `SELECT * FROM admins WHERE LOWER(username) = LOWER($1) AND status = 'active'`;
+
+    con.query(findUserQuery, [username], (err, result) => {
+        if (err) {
+            console.error("Error fetching user from database:", err.stack);
+            return res.status(500).json({ message: "Internal server error" });
         }
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ message: "Invalid username or password" });
+        }
+
+        const user = result.rows[0];
+
+        // Compare the hashed password with the password entered by the user
+        bcrypt.compare(password, user.password, (err, isMatch) => {
+            if (err) {
+                console.error("Error comparing passwords:", err.stack);
+                return res.status(500).json({ message: "Internal server error" });
+            }
+
+            if (!isMatch) {
+                return res.status(400).json({ message: "Invalid username or password" });
+            }
+
+            // If password matches, login is successful
+            res.status(200).json({ message: "Login successful", admin_id: user.admin_id, username: user.username });
+        });
     });
 };
+
+
+
+
+
 
 // Get all active admins
 const getAdmins = (req, res) => {
@@ -130,49 +177,151 @@ const getAdmins = (req, res) => {
 
 
 
-const addAdmin = (req, res) => {
-    const { email } = req.body;
+// const addAdmin = (req, res) => {
+//     const { email } = req.body;
 
-    if (!email || !email.includes("@")) {
-        return res.status(400).json({ error: "Please provide a valid email address" });
-    }
+//     if (!email || !email.includes("@")) {
+//         return res.status(400).json({ error: "Please provide a valid email address" });
+//     }
 
-    const username = email.split("@")[0];
-    const check_email_query = `SELECT * FROM admins WHERE email = $1`;
+//     const username = email.split("@")[0];
+//     const check_email_query = `SELECT * FROM admins WHERE email = $1`;
 
-    con.query(check_email_query, [email], (err, result) => {
-        if (err) {
-            console.error("Error checking email uniqueness:", err.stack);
-            return res.status(500).json({ error: "Internal server error" });
-        }
-        if (result.rows.length > 0) {
-            return res.status(400).json({ error: "This email is already associated with another admin" });
-        }
-        const insert_admin_query = `
-            INSERT INTO admins (username, email, status)
-            VALUES ($1, $2, 'active') RETURNING admin_id, username, email, status`;
+//     con.query(check_email_query, [email], (err, result) => {
+//         if (err) {
+//             console.error("Error checking email uniqueness:", err.stack);
+//             return res.status(500).json({ error: "Internal server error" });
+//         }
+//         if (result.rows.length > 0) {
+//             return res.status(400).json({ error: "This email is already associated with another admin" });
+//         }
+//         const insert_admin_query = `
+//             INSERT INTO admins (username, email, status)
+//             VALUES ($1, $2, 'active') RETURNING admin_id, username, email, status`;
 
-        const admin_values = [username, email];
+//         const admin_values = [username, email];
 
-        con.query(insert_admin_query, admin_values, (err, result) => {
-            if (err) {
-                console.error("Error adding admin:", err.stack);
-                return res.status(500).json({ error: "Internal server error while adding admin" });
-            }
-            const newAdmin = result.rows[0];
-            return res.status(201).json({
-                message: "Admin added successfully",
-                admin: newAdmin
-            });
-        });
-    });
-};
+//         con.query(insert_admin_query, admin_values, (err, result) => {
+//             if (err) {
+//                 console.error("Error adding admin:", err.stack);
+//                 return res.status(500).json({ error: "Internal server error while adding admin" });
+//             }
+//             const newAdmin = result.rows[0];
+//             return res.status(201).json({
+//                 message: "Admin added successfully",
+//                 admin: newAdmin
+//             });
+//         });
+//     });
+// };
 
 
 
 
 
 //update password
+
+
+
+
+const addAdmin = async (req, res) => {
+    const { email, username, current_username } = req.body;
+
+    // Check if either email or username is provided
+    if (!email && !username) {
+        return res.status(400).json({ error: "Please provide either a valid email address or a username" });
+    }
+
+    // If an email is provided, handle it
+    if (email && email.includes("@")) {
+        const email_username = email.split("@")[0];
+        const check_email_query = `SELECT * FROM admins WHERE email = $1`;
+
+        con.query(check_email_query, [email], async (err, result) => {
+            if (err) {
+                console.error("Error checking email uniqueness:", err.stack);
+                return res.status(500).json({ error: "Internal server error" });
+            }
+            if (result.rows.length > 0) {
+                return res.status(400).json({ error: "This email is already associated with another admin" });
+            }
+
+            // Encrypt the email_username as the password
+            const hashedPassword = await bcrypt.hash(email_username, 10);
+
+            const insert_admin_query = `
+                INSERT INTO admins (username, email, password, status, updated_by)
+                VALUES ($1, $2, $3, 'active', $4) 
+                RETURNING admin_id, username, email, status`;
+
+            const admin_values = [email_username, email, hashedPassword, current_username];
+
+            con.query(insert_admin_query, admin_values, (err, result) => {
+                if (err) {
+                    console.error("Error adding admin:", err.stack);
+                    return res.status(500).json({ error: "Internal server error while adding admin" });
+                }
+                const newAdmin = result.rows[0];
+                return res.status(201).json({
+                    message: "Admin added successfully",
+                    admin: newAdmin
+                });
+            });
+        });
+    } 
+    // If a username is provided, handle it
+    else if (username) {
+        const check_username_query = `SELECT * FROM admins WHERE username = $1`;
+
+        con.query(check_username_query, [username], async (err, result) => {
+            if (err) {
+                console.error("Error checking username uniqueness:", err.stack);
+                return res.status(500).json({ error: "Internal server error" });
+            }
+            if (result.rows.length > 0) {
+                return res.status(400).json({ error: "This username is already taken" });
+            }
+
+            // Encrypt the username as the password
+            const hashedPassword = await bcrypt.hash(username, 10);
+
+            const insert_username_query = `
+                INSERT INTO admins (username, password, status, updated_by)
+                VALUES ($1, $2, 'active', $3) 
+                RETURNING admin_id, username, status`;
+
+            const admin_values = [username, hashedPassword, current_username];
+
+            con.query(insert_username_query, admin_values, (err, result) => {
+                if (err) {
+                    console.error("Error adding admin:", err.stack);
+                    return res.status(500).json({ error: "Internal server error while adding admin" });
+                }
+                const newAdmin = result.rows[0];
+                return res.status(201).json({
+                    message: "Admin added successfully",
+                    admin: newAdmin
+                });
+            });
+        });
+    } else {
+        return res.status(400).json({ error: "Please provide either a valid email address or a username" });
+    }
+};
+
+// module.exports = { addAdmin };
+
+
+
+
+
+
+
+
+
+
+
+
 const bcrypt = require('bcryptjs');
 const updatePassword = (req, res) => {
     const { admin_id, old_password, new_password } = req.body;
@@ -614,28 +763,101 @@ const deactivateOption = (req, res) => {
 
 
 // Add an option with weightage for a question
+// const addOption = (req, res) => {
+//     const { question_id, disease_id, option_text, weightage } = req.body;
+//     if (!question_id || !disease_id || !option_text || weightage === undefined) return res.status(400).json({ error: "Please provide question_id, disease_id, option_text, and weightage" });
+
+//     const check_question_query = `SELECT q.status, qdr.question_disease_relation_id FROM questions q JOIN question_disease_relation qdr ON q.question_id = qdr.question_id WHERE q.question_id = $1 AND qdr.disease_id = $2`;
+//     con.query(check_question_query, [question_id, disease_id], (err, result) => {
+//         if (err) return res.status(500).json({ error: "Internal server error" });
+//         if (result.rows.length === 0 || result.rows[0].status !== "active") return res.status(400).json({ error: "The question is either inactive or does not have a relationship with the specified disease." });
+
+//         const options_id = Math.floor(Math.random() * 1000000);
+//         const questions_disease_weightage_id = Math.floor(Math.random() * 1000000);
+//         const insert_option_query = `INSERT INTO options (options_id, options, question_id, status) VALUES ($1, $2, $3, 'active')`;
+//         con.query(insert_option_query, [options_id, option_text, question_id], (err) => {
+//             if (err) return res.status(500).json({ error: "Internal server error while adding option" });
+
+//             const insert_weightage_query = `INSERT INTO questions_disease_weightage (questions_disease_weightage_id, question_id, disease_id, options_id, weightage) VALUES ($1, $2, $3, $4, $5)`;
+//             con.query(insert_weightage_query, [questions_disease_weightage_id, question_id, disease_id, options_id, weightage], (err) => {
+//                 if (err) return res.status(500).json({ error: "Internal server error while adding weightage" });
+//                 res.status(201).json({ message: "Option and weightage added successfully", options_id,option_text });
+//             });
+//         });
+//     });
+// };
+
 const addOption = (req, res) => {
-    const { question_id, disease_id, option_text, weightage } = req.body;
-    if (!question_id || !disease_id || !option_text || weightage === undefined) return res.status(400).json({ error: "Please provide question_id, disease_id, option_text, and weightage" });
+    const { options } = req.body;
 
-    const check_question_query = `SELECT q.status, qdr.question_disease_relation_id FROM questions q JOIN question_disease_relation qdr ON q.question_id = qdr.question_id WHERE q.question_id = $1 AND qdr.disease_id = $2`;
-    con.query(check_question_query, [question_id, disease_id], (err, result) => {
-        if (err) return res.status(500).json({ error: "Internal server error" });
-        if (result.rows.length === 0 || result.rows[0].status !== "active") return res.status(400).json({ error: "The question is either inactive or does not have a relationship with the specified disease." });
+    // Check if the required fields are provided
+    if (!Array.isArray(options) || options.length === 0) {
+        return res.status(400).json({ error: "Please provide an array of options with question_id, disease_id, option_text, and weightage" });
+    }
 
-        const options_id = Math.floor(Math.random() * 1000000);
-        const questions_disease_weightage_id = Math.floor(Math.random() * 1000000);
-        const insert_option_query = `INSERT INTO options (options_id, options, question_id, status) VALUES ($1, $2, $3, 'active')`;
-        con.query(insert_option_query, [options_id, option_text, question_id], (err) => {
-            if (err) return res.status(500).json({ error: "Internal server error while adding option" });
+    // Iterate over each option and insert them one by one
+    const insertOptionPromises = options.map((option) => {
+        const { question_id, disease_id, option_text, weightage } = option;
+        if (!question_id || !disease_id || !option_text || weightage === undefined) {
+            return Promise.reject({ error: "Each option must have question_id, disease_id, option_text, and weightage" });
+        }
 
-            const insert_weightage_query = `INSERT INTO questions_disease_weightage (questions_disease_weightage_id, question_id, disease_id, options_id, weightage) VALUES ($1, $2, $3, $4, $5)`;
-            con.query(insert_weightage_query, [questions_disease_weightage_id, question_id, disease_id, options_id, weightage], (err) => {
-                if (err) return res.status(500).json({ error: "Internal server error while adding weightage" });
-                res.status(201).json({ message: "Option and weightage added successfully", options_id,option_text });
+        // Check if the question is active and related to the disease
+        const check_question_query = `SELECT q.status, qdr.question_disease_relation_id 
+                                      FROM questions q 
+                                      JOIN question_disease_relation qdr 
+                                      ON q.question_id = qdr.question_id 
+                                      WHERE q.question_id = $1 AND qdr.disease_id = $2`;
+
+        return new Promise((resolve, reject) => {
+            con.query(check_question_query, [question_id, disease_id], (err, result) => {
+                if (err) {
+                    console.error("Error checking question relation:", err.stack);  // Log the error
+                    return reject({ error: "Internal server error while checking question relation" });
+                }
+                if (result.rows.length === 0 || result.rows[0].status !== "active") {
+                    return reject({ error: `The question is either inactive or does not have a relationship with disease_id ${disease_id}` });
+                }
+
+                const options_id = Math.floor(Math.random() * 1000000);
+                const questions_disease_weightage_id = Math.floor(Math.random() * 1000000);
+
+                const insert_option_query = `INSERT INTO options (options_id, options, question_id, status) VALUES ($1, $2, $3, 'active')`;
+
+                // Insert into options table
+                con.query(insert_option_query, [options_id, option_text, question_id], (err) => {
+                    if (err) {
+                        console.error("Error adding option:", err.stack);  // Log the error
+                        return reject({ error: "Internal server error while adding option" });
+                    }
+
+                    // Insert into questions_disease_weightage table
+                    const insert_weightage_query = `INSERT INTO questions_disease_weightage 
+                                                    (questions_disease_weightage_id, question_id, disease_id, options_id, weightage) 
+                                                    VALUES ($1, $2, $3, $4, $5)`;
+
+                    con.query(insert_weightage_query, [questions_disease_weightage_id, question_id, disease_id, options_id, weightage], (err) => {
+                        if (err) {
+                            console.error("Error adding weightage:", err.stack);  // Log the error
+                            return reject({ error: "Internal server error while adding weightage" });
+                        }
+
+                        resolve({ options_id, option_text, weightage, question_id, disease_id });
+                    });
+                });
             });
         });
     });
+
+    // Execute all insert queries and send the response
+    Promise.all(insertOptionPromises)
+        .then((insertedOptions) => {
+            res.status(201).json({ message: "Options and weightage added successfully", options: insertedOptions });
+        })
+        .catch((error) => {
+            console.error("Error processing request:", error);  // Log the error
+            res.status(500).json({ error: error.message || "Internal server error while adding options or weightage" });
+        });
 };
 
 
