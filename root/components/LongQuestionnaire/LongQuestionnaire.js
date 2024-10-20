@@ -11,7 +11,60 @@ import {Picker} from '@react-native-picker/picker';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import {useRoute} from '@react-navigation/native';
-import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
+import {BarChart} from 'react-native-gifted-charts';
+const HorizontalBarChart = barData => {
+  barData = [
+    {label: 'Cardiovascular Disease Risk', value: 0.8},
+    {label: 'Diabetes and Metabolic Syndrome Risk', value: 1},
+    {label: 'Obesity Risk', value: 0.3},
+    {label: 'Cancer Risk', value: 1},
+    {label: 'Blood Clots Risk', value: 1},
+    {label: 'Musculoskeletal Disorders Risk', value: 1},
+    {label: 'Gastrointestinal Risk', value: 1},
+    {label: 'Mental Health Risk', value: 1},
+    {label: 'Stroke Risk', value: 1},
+    {label: 'Osteoporosis Risk', value: 1},
+    {label: 'daily', value: 1},
+  ];
+  const getColor = a => {
+    if (a >= 0 && a <= 0.3) {
+      return 'green';
+    } else if (a > 0.3 && a <= 0.8) {
+      return 'yellow';
+    } else if (a > 0.8) {
+      return 'red';
+    }
+  };
+
+  barData = barData.map(e => ({...e, frontColor: getColor(e.value)}));
+  return (
+    <View style={styles.barChartContainer}>
+      <BarChart
+        barWidth={28}
+        noOfSections={1}
+        horizontal={true}
+        shiftX={-80}
+        rtl
+        frontColor="lightgray"
+        data={barData}
+        yAxisThickness={0}
+        xAxisThickness={0}
+        showYAxisIndices={false}
+        hideYAxisText={true}
+        hideRules={true}
+        spacing={15}
+        xAxisLabelTextStyle={{fontSize: 12}}
+        yAxisLabelWidth={180}
+        renderYAxisLabel={label => (
+          <View style={{paddingLeft: 200}}>
+            <Text style={{fontSize: 12}}>{label}</Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+};
+
 const renderQuestion = (
   question,
   index,
@@ -87,6 +140,7 @@ const LongQuestionnaire = props => {
   const [currentAnswers, setCurrentAnswers] = useState({});
   const [barChartData, setBarChartData] = useState([]);
   const [errorText, setErrorText] = useState('');
+  const [remaningDays, setRemainingDays] = useState('');
   console.log('barChartDataaaa', barChartData);
 
   const updateQuestionsAnswer = (option_id, question_id, questionType) => {
@@ -111,19 +165,33 @@ const LongQuestionnaire = props => {
     });
   };
 
+  const saveAsDraftURL = isItDailyQuestions
+    ? 'http://10.0.2.2:3000/dail_save_draft'
+    : 'http://10.0.2.2:3000/questionnaire_save_draft';
+
+  const saveAsAdraft = async () => {
+    // console.log('currentAnswers', currentAnswers);
+    // return;
+    const response = await fetch(saveAsDraftURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: `Bearer ${loginToken}`,
+      },
+      body: JSON.stringify({
+        responses: transformToDesiredStructure(currentAnswers),
+      }),
+    });
+    const data = await response.json();
+    console.log(JSON.stringify(data));
+  };
+
   const submitQuestionnare = async () => {
     setErrorText('');
     if (Object.values(currentAnswers).filter(a => a.length == 0).length != 0) {
       setErrorText('Please answer all the questions');
       return;
     }
-    console.log('submitURL', submitURL);
-    console.log(
-      'req body',
-      JSON.stringify(transformToDesiredStructure(currentAnswers)),
-    );
-    console.log('login token in long questionnaire', loginToken);
-
     const response = await fetch(submitURL, {
       method: 'POST',
       headers: {
@@ -165,8 +233,13 @@ const LongQuestionnaire = props => {
         },
       });
       const allQuestions = await response.json();
+      console.log('allQuestionsss', JSON.stringify(allQuestions));
+      const statusCode = response.status;
       if (response.ok) {
-        let allQuesionID = allQuestions.map(q => ({[q.question_id]: []}));
+        let allQuesionID = allQuestions.map(q => ({
+          [q.question_id]: q.options_selected,
+        }));
+        console.log('allQuesionID', allQuesionID);
         allQuesionID = allQuesionID.reduce((acc, curr) => {
           const key = Object.keys(curr)[0];
           acc[key] = curr[key];
@@ -175,12 +248,16 @@ const LongQuestionnaire = props => {
 
         setCurrentAnswers(allQuesionID);
         setLongQuestionnaire(allQuestions);
+      } else if (statusCode == 403) {
+        setRemainingDays(allQuestions.error);
       }
     };
     fetchLongQuestionnaire();
   }, []);
   let whichQuestionsToUse = questions;
-  return isItDailyQuestions && todayQ ? (
+  return remaningDays.length != 0 ? (
+    <Text>{remaningDays}</Text>
+  ) : isItDailyQuestions && todayQ ? (
     <View
       style={{
         flexDirection: 'column',
@@ -192,7 +269,7 @@ const LongQuestionnaire = props => {
       </Text>
     </View>
   ) : !isItDailyQuestions && todayQ ? (
-    <HorizontalBarChart data={barChartData} needHorizontal={true} />
+    HorizontalBarChart(barChartData)
   ) : (
     <ScrollView style={{backgroundColor: 'rgb(226	244	254	)'}}>
       <View style={styles.container}>
@@ -240,7 +317,7 @@ const LongQuestionnaire = props => {
           </View>
         </View>
         <View style={styles.saveAsDraftContainer}>
-          <Button title="save draft" />
+          <Button title="save draft" onPress={saveAsAdraft} />
           {currentPage == Math.ceil(whichQuestionsToUse.length / 10) - 1 && (
             <View style={{marginTop: 5}}>
               {errorText.length > 0 && (
@@ -263,6 +340,12 @@ const LongQuestionnaire = props => {
 };
 
 const styles = StyleSheet.create({
+  barChartContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: 'rgb(226,242,215)',
+    margin: 9,
+  },
   errorText: {
     color: 'red',
   },

@@ -30,7 +30,6 @@ const Daily = props => {
       });
       const data = await response.json();
       setHistory(data);
-      console.log('dataaaa', JSON.stringify(data));
     };
     fetchPreviousDailyQuestionnare();
   }, [newSub]);

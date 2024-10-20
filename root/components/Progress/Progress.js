@@ -6,6 +6,12 @@ import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import Header from '../Header/Header';
 import Video from 'react-native-video';
 const Progress = () => {
+  const handleProgress = data => {
+    // console.log('video data', data.currentTime);
+  };
+  const endingHandler = () => {
+    console.log('doneeee');
+  };
   const [selectedValue, setSelectedValue] = useState('osteoporosis');
   const disease = [
     'osteoporosis',
@@ -104,7 +110,7 @@ const Progress = () => {
                           <Text>{yetToWatch[index][1]}</Text>
                         </View>
                       </View>
-                      <Icon name="external-link" size={20} color="black" />
+                      {/* <Icon name="external-link" size={20} color="black" /> */}
                     </View>
                     <View>
                       <Video
@@ -113,6 +119,8 @@ const Progress = () => {
                         controls={true}
                         resizeMode="contain"
                         paused={true}
+                        onProgress={handleProgress}
+                        onEnd={endingHandler}
                       />
                     </View>
                   </View>
@@ -155,7 +163,7 @@ const Progress = () => {
                           <Text>{completed[index][1]}</Text>
                         </View>
                       </View>
-                      <Icon name="external-link" size={20} color="black" />
+                      {/* <Icon name="external-link" size={20} color="black" /> */}
                     </View>
                     <View>
                       <Video
