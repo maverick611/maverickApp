@@ -1,0 +1,70 @@
+/* Main container for the navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #d3e6c6;
+  padding: 10px 20px;
+  height: 4rem;
+  position: fixed;
+  width: 100%;
+  z-index: 1;
+}
+
+.nav-btns {
+  display: flex
+}
+
+/* Left logo container */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo img {
+  height: 50px;
+  width: 200px;
+  margin-right: 10px;
+}
+
+.navbar-logo h1 {
+  color: #4a773c;
+  /* Darker green for the text */
+  font-size: 24px;
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Right side login button */
+.navbar-links .login-btn {
+  background-color: #80b041;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-links .login-btn {
+  display: flex;
+  color: white;
+  margin-left: 1rem;
+}
+
+.navbar-links .login-btn span {
+  margin-left: 0.5rem;
+}
+
+.navbar-links .login-btn:hover {
+  background-color: #639032;
+  /* Slightly darker shade on hover */
+}
+
+.nav-user {
+  font-size: larger;
+  margin-top: 0.5rem;
+  margin-right: 0.2rem;
+}

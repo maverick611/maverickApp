@@ -1,0 +1,117 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.profile-content {
+  display: flex;
+  width: 100%;
+  margin-top: 4rem;
+  margin-right: 14rem;
+}
+
+.profile-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(247, 247, 247);
+  overflow-y: scroll;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 40px;
+}
+
+.info-text {
+  margin-top: 0.5rem;
+  font-size: smaller;
+  color: burlywood;
+}
+
+.center-user {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.profile-btn,
+.btn-cancel,
+.btn-submit {
+  background-color: #367c6f;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 15rem;
+  margin: 5px;
+}
+
+.btn-cancel {
+  background-color: #ccc;
+}
+
+.profile-btn:hover,
+.btn-cancel:hover,
+.btn-submit:hover {
+  background-color: #2b6558;
+  color: white;
+}
+
+/* Form styling */
+.profile-form {
+  text-align: center;
+  margin: 1rem;
+}
+
+.profile-form-password {
+  text-align: center;
+  margin: 1rem;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  width: 48%;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.form-group input {
+  padding: 10px;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+/* Styling for the password and personal info forms */
+.profile-form-password h2,
+.profile-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.message {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+}

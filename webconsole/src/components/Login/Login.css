@@ -1,0 +1,60 @@
+.login {
+  background-color: #d3e6c6;
+  /* light green background */
+  padding: 40px;
+  max-width: 400px;
+  margin: 100px auto;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login form {
+  display: flex;
+  text-align: left;
+  flex-direction: column;
+}
+
+.login input {
+  margin-bottom: 15px;
+}
+
+.login button {
+  margin-top: 15px;
+  padding: 10px 15px;
+}
+
+.login p {
+  text-align: center;
+  color: red;
+  margin-bottom: 20px;
+}
+
+.mainLogo {
+  height: 80px;
+  width: 320px;
+  margin-top: 7rem;
+}
+
+.passwordContainer {
+  position: relative;
+}
+
+.passwordContainer input {
+  width: 100%;
+  /* Adjust as needed */
+  padding-right: 30px;
+  /* Space for the icon */
+}
+
+.togglePasswordIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}

@@ -1,0 +1,47 @@
+.user-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-content {
+  display: flex;
+  width: 100%;
+}
+
+.user-main-content {
+  padding: 20px;
+  width: 100%;
+  margin-top: 4rem;
+  margin-left: 14rem;
+}
+
+.user-search {
+  margin-left: auto;
+  text-align: right;
+}
+
+.user-bar-content {
+  display: flex;
+}
+
+.user-section {
+  display: flex;
+  justify-content: space-between;
+}
+
+.user-section h3 {
+  margin-top: 1rem;
+  font-size: x-large;
+}
+
+.menu-btn {
+  margin-right: 1rem;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 10px;
+}
+
+.user-form {
+  text-align: center;
+  margin: 1rem;
+}

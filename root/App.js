@@ -1,98 +1,124 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState} from 'react';
+import Login from './components/Login/Login.js';
+import SignUp from './components/SignUp/SignUp.js';
+import Verification from './components/Verification/Verification.js';
+import Home from './components/Home/Home.js';
+import Notify from './components/Notify/Notify.js';
+import Progress from './components/Progress/Progress.js';
+import DailyQuestionsResponse from './components/DailyQuestionsResponse/DailyQuestionsResponse.js';
+import Reports from './components/Reports/Reports.js';
+import Daily from './components/Daily/Daily.js';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
+import Ionicons from 'react-native-vector-icons/Ionicons.js';
+import DailyQuestions from './components/DailyQuestions/DailyQuestions.js';
+import LongQuestionnaire from './components/LongQuestionnaire/LongQuestionnaire.js';
+import CertainReport from './components/CertainReport/CertainReport.js';
+import UpdateProfilePicture from './components/UpdateProfilePicture/UpdateProfilePicture.js';
+import Avatar from './components/Avatar/Avatar.js';
+import Profile from './components/Profile/Profile.js';
+import LongQuestionnaireResponses from './components/LongQuestionnaireResponses/LongQuestionnaireResponses.js';
 
-import React from 'react';
-import {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-// type SectionProps = PropsWithChildren<{
-//   title: string,
-// }>;
-
-function Section({children, title}) {
-  const isDarkMode = useColorScheme() === 'dark';
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+const MyTabs = () => {
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-    </View>
+    <Tab.Navigator
+      screenOptions={({route}) => ({
+        headerShown: false,
+        tabBarIcon: ({focused, color, size}) => {
+          let iconName;
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Notify') {
+            iconName = focused ? 'notifications' : 'notifications-outline';
+          } else if (route.name === 'Report') {
+            iconName = focused ? 'newspaper' : 'newspaper-outline';
+          } else if (route.name === 'Resources') {
+            iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'Daily') {
+            iconName = focused ? 'calendar-sharp' : 'calendar-outline';
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'black',
+        tabBarInactiveTintColor: 'gray',
+      })}>
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Notify" component={Notify} />
+      <Tab.Screen name="Report" component={Reports} />
+      <Tab.Screen name="Resources" component={Progress} />
+      <Tab.Screen name="Daily" component={Daily} />
+    </Tab.Navigator>
   );
-}
+};
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 500,
-          }}>
-          <Text style={{fontSize: 24}}>hellllo </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+const App = () => {
+  const [isAuth, setIsAuth] = useState(true);
+  const [loginToken, setLoginToken] = useState('');
+  return isAuth ? (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="none"
+          component={MyTabs}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen name="Profile">
+          {props => <Profile {...props} setIsAuth={setIsAuth} />}
+        </Stack.Screen>
+        <Stack.Screen
+          name="UpdateProfilePicture"
+          component={UpdateProfilePicture}
+          options={{title: ''}}
+        />
+        <Stack.Screen name="Avatar" component={Avatar} options={{title: ''}} />
+        <Stack.Screen
+          name="DailyQuestionsResponse"
+          component={DailyQuestionsResponse}
+          options={{title: 'Your Response'}}
+        />
+        <Stack.Screen
+          name="dq"
+          component={DailyQuestions}
+          options={{title: "Today's Questionnaire"}}
+        />
+        <Stack.Screen
+          name="LongQuestionnaire"
+          component={LongQuestionnaire}
+          options={{title: 'Your Personalised Questionnare'}}
+        />
+        <Stack.Screen
+          name="LongQuestionnaireResponses"
+          component={LongQuestionnaireResponses}
+          options={{title: 'Your Response'}}
+        />
+        <Stack.Screen
+          name="CertainReport"
+          component={CertainReport}
+          options={{title: 'Your Report'}}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  ) : (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Login" options={{headerShown: false}}>
+          {props => <Login {...props} setIsAuth={setIsAuth} />}
+        </Stack.Screen>
+        <Stack.Screen name="SignUp" component={SignUp} />
+        <Stack.Screen name="Verification">
+          {props => <Verification {...props} setIsAuth={setIsAuth} />}
+        </Stack.Screen>
+        {/* <Stack.Screen name="Daily" component={Daily} />
+        <Stack.Screen
+          name="DailyQuestionsResponse"
+          component={DailyQuestionsResponse}
+        /> */}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
